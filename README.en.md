@@ -116,35 +116,62 @@ Logged-in users can switch between 6 built-in themes under **Settings (`#setting
 
 ## Quick Installation
 
-1. **Clone the repository**:
+polrX provides both a **5-Step Web Setup Wizard** and an **Interactive CLI Installer Script** (`./install.sh`), with built-in support for **Traditional Chinese / English / Japanese / Korean** starting from Step 1:
+
+### Option A: 5-Step Web Setup Wizard (Recommended)
+
+1. **Clone the repository & install dependencies**:
 
    ```bash
    git clone https://github.com/tommy1616/polrX.git
    cd polrX
-   ```
-
-2. **Install Composer dependencies**:
-
-   ```bash
    composer install --no-dev -o
    ```
 
-3. **Configure permissions**:
-   Point your web server document root to `public/` and ensure `storage/` and `bootstrap/cache/` are writable by the web server user:
+2. **Configure permissions**:
+   Point your web server document root to `public/` and ensure the project root, `storage/`, and `bootstrap/cache/` are writable by the web server user:
 
    ```bash
-   chown -R www-data:www-data storage bootstrap/cache
+   chown -R www-data:www-data . storage bootstrap/cache
    chmod -R 775 storage bootstrap/cache
    ```
 
-4. **Run setup & database migrations**:
-   - Visit `https://your-domain/setup` in your browser to use the web installer, or
-   - Copy `.env.setup` to `.env`, configure your database credentials, and run migrations:
+3. **Open your browser to launch the Setup Wizard**:
+   Visit `https://your-domain/` in your browser (when no `.env` is detected, polrX automatically initializes an encryption key and redirects to `/setup`):
+   - **Step 1 — Choose Language**: Select **繁體中文（台灣） / English / 日本語 / 한국어** first.
+   - **Step 2 — System Check**: Automatically verifies PHP version, extensions, and write permissions.
+   - **Step 3 — Database**: Enter MySQL / MariaDB credentials and click **"Test Database Connection"** (supports automatic `CREATE DATABASE IF NOT EXISTS`).
+   - **Step 4 — Site & Theme**: Configure site name, domain, live-preview default themes, and pick Public / Registered Users / Private access mode.
+   - **Step 5 — Admin & Install**: Runs database migrations, creates your admin account, and signs you in automatically.
 
-     ```bash
-     cp .env.setup .env
-     php artisan migrate --force
-     ```
+### Option B: CLI Interactive Installer (`./install.sh` — Ideal for SSH / Docker)
+
+Run `./install.sh` from the project root for an interactive terminal wizard or automated non-interactive deployment:
+
+```bash
+git clone https://github.com/tommy1616/polrX.git
+cd polrX
+
+# Interactive terminal wizard (asks for language first)
+./install.sh
+
+# Or non-interactive one-command deployment:
+./install.sh --no-interaction \
+  --lang=en \
+  --db-host=127.0.0.1 \
+  --db-port=3306 \
+  --db-name=polr \
+  --db-user=polr \
+  --db-pass="YourStrongDbPassword" \
+  --app-name="polrX" \
+  --app-protocol="https://" \
+  --app-address="u.example.com" \
+  --theme=midnight \
+  --access-mode=public \
+  --admin-user=admin \
+  --admin-email="admin@example.com" \
+  --admin-pass="YourAdminPassword"
+```
 
 > [!IMPORTANT]
 > Never commit your `.env` file to version control or expose it publicly via your web server.

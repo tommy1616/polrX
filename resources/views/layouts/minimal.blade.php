@@ -1,38 +1,24 @@
-<!--
-Polr, a minimalist URL shortening platform.
-Copyright (C) 2013-2017 Chaoyi Zha
-
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
--->
-
 <!DOCTYPE html>
-<html ng-app="polr">
+<html lang="{{ isset($current_locale_meta) ? $current_locale_meta['html_lang'] : 'zh-TW' }}" ng-app="polr" data-theme="{{ isset($user_theme) && $user_theme !== 'default' ? $user_theme : 'midnight' }}">
     <head>
-        <title>{{ env('APP_NAME', 'polrX') }} @yield('title')</title>
+        <title>{{ env('APP_NAME', 'polrX') }} — @yield('title')</title>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="csrf-token" content="{{ csrf_token() }}">
         <link rel="icon" type="image/svg+xml" href="/favicon.svg">
         <link rel="shortcut icon" href="/favicon.svg">
+        <link rel="stylesheet" href="/css/default-bootstrap.min.css">
+        <link rel="stylesheet" href="/css/font-awesome.min.css">
+        <link rel="stylesheet" href="/css/themes.css">
         @yield('css')
     </head>
     <body>
-        <div class='container'>
+        <div class="container">
             @yield('content')
         </div>
 
         <script src="/js/jquery-1.11.3.min.js"></script>
+        <script src="/js/bootstrap.min.js"></script>
         @yield('js')
     </body>
 </html>

@@ -116,36 +116,62 @@ polrX 內建完整的四語系字典檔（位於 [`lang/`](lang/) 目錄），�
 
 ## 快速安裝
 
-1. **取得原始碼**：
+polrX 提供 **「網頁版 5 步驟導引精靈」** 與 **「CLI 終端機互動安裝腳本」** 兩種無痛安裝方式（皆支援 **繁體中文 / English / 日本語 / 한국어** 四語系切換）：
+
+### 方式 A：使用網頁導引精靈（推薦）
+
+1. **取得原始碼並安裝套件**：
 
    ```bash
    git clone https://github.com/tommy1616/polrX.git
    cd polrX
-   ```
-
-2. **安裝 Composer 相依套件**：
-
-   ```bash
    composer install --no-dev -o
    ```
 
-3. **設定目錄權限**：
-   將 Web 伺服器的根目錄指向 `public/`，並確保 `storage/` 與 `bootstrap/cache/` 可由 Web 伺服器程序（如 `www-data`）寫入：
+2. **設定目錄寫入權限**：
+   將 Web 伺服器的網站根目錄（Document Root）指向 `public/`，並確保專案根目錄、`storage/` 與 `bootstrap/cache/` 可由 Web 伺服器程序寫入：
 
    ```bash
-   chown -R www-data:www-data storage bootstrap/cache
+   chown -R www-data:www-data . storage bootstrap/cache
    chmod -R 775 storage bootstrap/cache
    ```
 
-4. **執行初始化設定與資料庫遷移**：
-   - 你可以透過瀏覽器開啟 `https://你的網域/setup` 進行圖形化安裝；
-   - 或複製環境設定範本並手動執行遷移：
+3. **開啟瀏覽器完成 5 步驟導引精靈**：
+   直接用瀏覽器開啟 `https://你的網域/`（當偵測到尚未建立 `.env` 時，系統會自動產生初始金鑰並導向 `/setup` 安裝精靈）：
+   - **步驟 1 — 選擇語言**：優先選擇 **繁體中文（台灣） / English / 日本語 / 한국어**。
+   - **步驟 2 — 環境檢查**：自動檢測 PHP 版本、必要擴充套件與資料夾寫入權限。
+   - **步驟 3 — 資料庫設定**：填入 MySQL / MariaDB 資訊並點擊 **「測試資料庫連線」**（支援自動建立資料庫 `CREATE DATABASE IF NOT EXISTS`）。
+   - **步驟 4 — 站台與外觀**：設定站台名稱、網域、即時預覽挑選預設主題，以及設定公開／會員／私人模式。
+   - **步驟 5 — 建立管理員與一鍵安裝**：自動執行資料表遷移、建立管理員帳號並自動登入。
 
-     ```bash
-     cp .env.setup .env
-     # 編輯 .env 填入資料庫連線資訊與 APP_KEY
-     php artisan migrate --force
-     ```
+### 方式 B：使用 CLI 終端機互動安裝腳本（適合 SSH / Docker 部署）
+
+只需在專案根目錄執行 `./install.sh`，即可在終端機透過互動式問答（或非互動參數）完成全部安裝：
+
+```bash
+git clone https://github.com/tommy1616/polrX.git
+cd polrX
+
+# 互動式導引安裝（第一步即可選擇語言）
+./install.sh
+
+# 或使用非互動參數一鍵自動化部署：
+./install.sh --no-interaction \
+  --lang=zh_TW \
+  --db-host=127.0.0.1 \
+  --db-port=3306 \
+  --db-name=polr \
+  --db-user=polr \
+  --db-pass="YourStrongDbPassword" \
+  --app-name="polrX" \
+  --app-protocol="https://" \
+  --app-address="u.example.com" \
+  --theme=midnight \
+  --access-mode=public \
+  --admin-user=admin \
+  --admin-email="admin@example.com" \
+  --admin-pass="YourAdminPassword"
+```
 
 > [!IMPORTANT]
 > 安裝完成後，系統設定會保存在專案根目錄的 `.env`。**請勿將 `.env` 提交至 Git 版本控制，並確保外部網路無法直接讀取該檔案。**

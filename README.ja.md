@@ -116,35 +116,62 @@ polrX は以下の進化によってこれらの課題を解決します：
 
 ## クイックインストール
 
-1. **リポジトリのクローン**：
+polrX は **「5 ステップ Web セットアップウィザード」** と **「CLI 対話型インストーラースクリプト (`./install.sh`)」** の 2 通りのインストール方法を提供しています（どちらもステップ 1 で **繁體中文 / English / 日本語 / 한국어** の 4 言語を選択可能）：
+
+### 方法 A：5 ステップ Web セットアップウィザード（推奨）
+
+1. **リポジトリのクローンと依存関係のインストール**：
 
    ```bash
    git clone https://github.com/tommy1616/polrX.git
    cd polrX
-   ```
-
-2. **依存パッケージのインストール**：
-
-   ```bash
    composer install --no-dev -o
    ```
 
-3. **ディレクトリ権限の設定**：
-   Web サーバーのドキュメントルートを `public/` に向け、`storage/` と `bootstrap/cache/` に書き込み権限を付与します：
+2. **ディレクトリ権限の設定**：
+   Web サーバーのドキュメントルートを `public/` に向け、プロジェクトルート、`storage/`、`bootstrap/cache/` に書き込み権限を付与します：
 
    ```bash
-   chown -R www-data:www-data storage bootstrap/cache
+   chown -R www-data:www-data . storage bootstrap/cache
    chmod -R 775 storage bootstrap/cache
    ```
 
-4. **初期セットアップとマイグレーション**：
-   - ブラウザで `https://あなたのドメイン/setup` を開いて Web インストーラーを実行するか、
-   - `.env.setup` を `.env` にコピーしてデータベース接続情報を設定し、マイグレーションを実行します：
+3. **ブラウザから 5 ステップウィザードを実行**：
+   ブラウザで `https://あなたのドメイン/` にアクセスします（`.env` が存在しない場合、自動的に暗号化キーを生成し `/setup` へリダイレクトされます）：
+   - **ステップ 1 — 言語選択**：最初に **繁體中文（台灣） / English / 日本語 / 한국어** を選択します。
+   - **ステップ 2 — 環境チェック**：PHP バージョン、必須拡張モジュール、書き込み権限を自動検証します。
+   - **ステップ 3 — データベース設定**：MySQL / MariaDB の接続情報を入力し **「データベース接続テスト」** を実行します（`CREATE DATABASE IF NOT EXISTS` による自動作成に対応）。
+   - **ステップ 4 — サイトと外観**：サイト名、ドメイン、デフォルトテーマのリアルタイムプレビュー、公開／会員限定／プライベートモードを選択します。
+   - **ステップ 5 — 管理者作成＆インストール**：マイグレーション実行、管理者アカウント作成、および自動ログインが一括で完了します。
 
-     ```bash
-     cp .env.setup .env
-     php artisan migrate --force
-     ```
+### 方法 B：CLI 対話型インストーラー（`./install.sh` — SSH / Docker 環境向け）
+
+プロジェクトルートで `./install.sh` を実行すると、ターミナルの対話形式（または非対話オプション）でセットアップを完了できます：
+
+```bash
+git clone https://github.com/tommy1616/polrX.git
+cd polrX
+
+# 対話型インストーラー（最初に言語を選択）
+./install.sh
+
+# または非対話オプションによる 1 コマンド自動構築：
+./install.sh --no-interaction \
+  --lang=ja \
+  --db-host=127.0.0.1 \
+  --db-port=3306 \
+  --db-name=polr \
+  --db-user=polr \
+  --db-pass="YourStrongDbPassword" \
+  --app-name="polrX" \
+  --app-protocol="https://" \
+  --app-address="u.example.com" \
+  --theme=midnight \
+  --access-mode=public \
+  --admin-user=admin \
+  --admin-email="admin@example.com" \
+  --admin-pass="YourAdminPassword"
+```
 
 > [!IMPORTANT]
 > `.env` ファイルは Git リポジトリにコミットせず、外部からブラウザで直接アクセスできないように保護してください。

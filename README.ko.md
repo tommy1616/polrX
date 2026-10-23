@@ -116,35 +116,62 @@ polrX는 다음과 같은 현대화를 통해 이 문제를 해결합니다:
 
 ## 빠른 설치
 
-1. **소스 코드 클론**:
+polrX는 **「5단계 웹 설치 마법사」**와 **「CLI 대화형 설치 스크립트 (`./install.sh`)」** 두 가지 설치 방식을 제공합니다 (두 방식 모두 1단계에서 **繁體中文 / English / 日本語 / 한국어** 4개 언어 선택 지원):
+
+### 방법 A: 5단계 웹 설치 마법사 (권장)
+
+1. **소스 코드 클론 및 패키지 설치**:
 
    ```bash
    git clone https://github.com/tommy1616/polrX.git
    cd polrX
-   ```
-
-2. **Composer 의존성 설치**:
-
-   ```bash
    composer install --no-dev -o
    ```
 
-3. **디렉터리 권한 설정**:
-   웹 서버의 Document Root를 `public/`으로 지정하고, `storage/` 및 `bootstrap/cache/` 디렉터리에 쓰기 권한을 부여합니다:
+2. **디렉터리 권한 설정**:
+   웹 서버의 Document Root를 `public/`으로 지정하고, 프로젝트 루트, `storage/` 및 `bootstrap/cache/` 디렉터리에 쓰기 권한을 부여합니다:
 
    ```bash
-   chown -R www-data:www-data storage bootstrap/cache
+   chown -R www-data:www-data . storage bootstrap/cache
    chmod -R 775 storage bootstrap/cache
    ```
 
-4. **초기 설정 및 데이터베이스 마이그레이션**:
-   - 브라우저에서 `https://귀하의-도메인/setup`에 접속하여 웹 설치 마법사를 진행하거나,
-   - `.env.setup`을 `.env`로 복사한 뒤 데이터베이스 정보를 입력하고 마이그레이션을 실행합니다:
+3. **브라우저에서 5단계 설치 마법사 진행**:
+   브라우저에서 `https://귀하의-도메인/`에 접속합니다 (`.env` 파일이 없으면 자동으로 암호화 키를 초기화하고 `/setup` 설치 마법사로 이동합니다):
+   - **1단계 — 언어 선택**: 가장 먼저 **繁體中文（台灣） / English / 日本語 / 한국어** 중 원하는 언어를 선택합니다.
+   - **2단계 — 환경 점검**: PHP 버전, 필수 확장 모듈 및 디렉터리 쓰기 권한을 자동으로 확인합니다.
+   - **3단계 — 데이터베이스 설정**: MySQL / MariaDB 연결 정보를 입력하고 **"데이터베이스 연결 테스트"**를 클릭합니다 (`CREATE DATABASE IF NOT EXISTS` 자동 생성 지원).
+   - **4단계 — 사이트 및 테마**: 사이트 이름, 도메인, 실시간 테마 미리보기 및 공개/회원 전용/비공개 모드를 선택합니다.
+   - **5단계 — 관리자 생성 및 설치**: 데이터베이스 마이그레이션, 관리자 계정 생성 및 자동 로그인이 한 번에 완료됩니다.
 
-     ```bash
-     cp .env.setup .env
-     php artisan migrate --force
-     ```
+### 방법 B: CLI 대화형 설치 스크립트 (`./install.sh` — SSH / Docker 환경용)
+
+프로젝트 루트에서 `./install.sh`를 실행하면 터미널 대화형 마법사(또는 비대화형 옵션)로 즉시 설치할 수 있습니다:
+
+```bash
+git clone https://github.com/tommy1616/polrX.git
+cd polrX
+
+# 대화형 터미널 설치 마법사 (1단계에서 언어 선택)
+./install.sh
+
+# 또는 비대화형 옵션을 통한 원클릭 자동 배포:
+./install.sh --no-interaction \
+  --lang=ko \
+  --db-host=127.0.0.1 \
+  --db-port=3306 \
+  --db-name=polr \
+  --db-user=polr \
+  --db-pass="YourStrongDbPassword" \
+  --app-name="polrX" \
+  --app-protocol="https://" \
+  --app-address="u.example.com" \
+  --theme=midnight \
+  --access-mode=public \
+  --admin-user=admin \
+  --admin-email="admin@example.com" \
+  --admin-pass="YourAdminPassword"
+```
 
 > [!IMPORTANT]
 > `.env` 파일은 절대 Git 저장소에 커밋하지 마시고, 외부에서 웹으로 직접 접근할 수 없도록 보호하세요.

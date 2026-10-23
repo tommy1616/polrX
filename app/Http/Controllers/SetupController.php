@@ -1,262 +1,473 @@
 <?php
+
 namespace App\Http\Controllers;
-use Illuminate\Http\Request;
-use Illuminate\Http\Redirect;
-use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Schema;
 
-use App\Helpers\CryptoHelper;
-use App\Models\User;
-use App\Helpers\UserHelper;
 use App\Factories\UserFactory;
-use Cache;
+use App\Helpers\CryptoHelper;
+use App\Helpers\LocaleHelper;
+use App\Helpers\ThemeHelper;
+use App\Helpers\UserHelper;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
+use PDO;
+use Throwable;
 
-class SetupController extends Controller {
-    protected static function parseExitCode($exitCode) {
-        if ($exitCode == 0) {
-            return true;
+class SetupController extends Controller
+{
+    public static function getEnvironmentChecks(): array
+    {
+        $basePath = base_path();
+        $envPath = base_path('.env');
+        $storageWritable = is_writable(storage_path()) && is_writable(base_path('bootstrap/cache'));
+        $envWritable = file_exists($envPath) ? is_writable($envPath) : is_writable($basePath);
+
+        $items = [
+            [
+                'key' => 'php_version',
+                'label' => __('polr.setup.step2.php_version'),
+                'detail' => 'PHP '.PHP_VERSION,
+                'passed' => version_compare(PHP_VERSION, '8.3.0', '>='),
+            ],
+            [
+                'key' => 'ext_pdo',
+                'label' => __('polr.setup.step2.ext_pdo'),
+                'detail' => 'pdo_mysql',
+                'passed' => extension_loaded('pdo_mysql'),
+            ],
+            [
+                'key' => 'ext_mbstring',
+                'label' => __('polr.setup.step2.ext_mbstring'),
+                'detail' => 'mbstring',
+                'passed' => extension_loaded('mbstring'),
+            ],
+            [
+                'key' => 'ext_bcmath',
+                'label' => __('polr.setup.step2.ext_bcmath'),
+                'detail' => 'bcmath',
+                'passed' => extension_loaded('bcmath'),
+            ],
+            [
+                'key' => 'ext_curl',
+                'label' => __('polr.setup.step2.ext_curl'),
+                'detail' => 'curl',
+                'passed' => extension_loaded('curl'),
+            ],
+            [
+                'key' => 'ext_xml',
+                'label' => __('polr.setup.step2.ext_xml'),
+                'detail' => 'xml',
+                'passed' => extension_loaded('xml'),
+            ],
+            [
+                'key' => 'perm_env',
+                'label' => __('polr.setup.step2.perm_env'),
+                'detail' => '.env',
+                'passed' => $envWritable,
+            ],
+            [
+                'key' => 'perm_storage',
+                'label' => __('polr.setup.step2.perm_storage'),
+                'detail' => 'storage/ & bootstrap/cache/',
+                'passed' => $storageWritable,
+            ],
+        ];
+
+        $allPassed = collect($items)->every(fn ($item) => $item['passed'] === true);
+
+        return [
+            'items' => $items,
+            'all_passed' => $allPassed,
+        ];
+    }
+
+    public static function connectDatabase(
+        string $host,
+        int $port,
+        string $database,
+        string $username,
+        string $password,
+        bool $autoCreate = true
+    ): array {
+        if (! preg_match('/^[a-zA-Z0-9_-]+$/', $database)) {
+            return [
+                'success' => false,
+                'error' => 'Invalid database name (only letters, numbers, underscores, and hyphens are allowed).',
+            ];
         }
-        else {
-            return false;
+
+        try {
+            $dsn = sprintf('mysql:host=%s;port=%d;charset=utf8mb4', $host, $port);
+            $pdo = new PDO($dsn, $username, $password, [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_TIMEOUT => 5,
+            ]);
+
+            if ($autoCreate) {
+                $pdo->exec(sprintf(
+                    'CREATE DATABASE IF NOT EXISTS `%s` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci',
+                    str_replace('`', '``', $database)
+                ));
+            }
+
+            $pdo->exec(sprintf('USE `%s`', str_replace('`', '``', $database)));
+            $version = (string) $pdo->query('SELECT VERSION()')->fetchColumn();
+
+            return [
+                'success' => true,
+                'version' => $version ?: 'MySQL / MariaDB',
+            ];
+        } catch (Throwable $e) {
+            return [
+                'success' => false,
+                'error' => $e->getMessage(),
+            ];
         }
     }
 
-    private static function setupAlreadyRan() {
-        return view('error', [
-            'message' => 'Sorry, but you have already completed the setup process.'
-        ]);
-    }
-
-    private function resetDatabase() {
-        $exitCode = Artisan::call('migrate:refresh', [
-            '--force' => true,
-        ]);
-        return self::parseExitCode($exitCode);
-    }
-
-    private static function updateGeoIP() {
-        // Output GeoIP database for advanced
-        // analytics
-        $exitCode = Artisan::call('geoip:update', []);
-        return self::parseExitCode($exitCode);
-    }
-
-    private static function createDatabase() {
-        $exitCode = Artisan::call('migrate', [
-            '--force' => true,
-        ]);
-        return self::parseExitCode($exitCode);
-    }
-
-    public static function displaySetupPage(Request $request) {
+    public function displaySetupPage(Request $request)
+    {
         if (env('POLR_SETUP_RAN')) {
-            return self::setupAlreadyRan();
+            return view('error', [
+                'message' => __('polr.setup.already_completed'),
+            ]);
         }
 
-        return view('setup');
+        $checks = self::getEnvironmentChecks();
+        $scheme = $request->isSecure() ? 'https://' : 'http://';
+        $host = $request->getHttpHost() ?: 'localhost';
+
+        return view('setup', [
+            'checks' => $checks['items'],
+            'all_checks_passed' => $checks['all_passed'],
+            'detected_protocol' => $scheme,
+            'detected_host' => $host,
+        ]);
     }
 
-    public static function performSetup(Request $request) {
+    public function checkEnvironment(Request $request)
+    {
         if (env('POLR_SETUP_RAN')) {
-            return self::setupAlreadyRan();
+            return response()->json(['error' => __('polr.setup.already_completed')], 403);
         }
 
-        $app_key = CryptoHelper::generateRandomHex(16);
-        $setup_auth_key = CryptoHelper::generateRandomHex(16);
+        return response()->json(self::getEnvironmentChecks());
+    }
 
-        $app_name = $request->input('app:name');
-        $app_protocol = $request->input('app:protocol');
+    public function testDatabaseConnection(Request $request)
+    {
+        if (env('POLR_SETUP_RAN')) {
+            return response()->json(['success' => false, 'message' => __('polr.setup.already_completed')], 403);
+        }
 
-        $app_address = $request->input('app:external_url');
-        $app_protocol = $request->input('app:protocol');
-        $app_stylesheet = $request->input('app:stylesheet');
+        $host = trim((string) $request->input('db:host', 'localhost'));
+        $port = (int) $request->input('db:port', 3306) ?: 3306;
+        $name = trim((string) $request->input('db:name', 'polr'));
+        $user = trim((string) $request->input('db:username', 'root'));
+        $pass = (string) $request->input('db:password', '');
+        $autoCreate = filter_var($request->input('db:auto_create', 'true'), FILTER_VALIDATE_BOOLEAN);
+
+        $result = self::connectDatabase($host, $port, $name, $user, $pass, $autoCreate);
+
+        if ($result['success']) {
+            return response()->json([
+                'success' => true,
+                'message' => __('polr.setup.step3.test_success', ['version' => $result['version']]),
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => __('polr.setup.step3.test_failed', ['error' => $result['error']]),
+        ], 422);
+    }
+
+    public static function runInstallation(array $input, string $clientIp = '127.0.0.1'): array
+    {
+        $locale = LocaleHelper::normalize($input['app:locale'] ?? App::getLocale());
+        App::setLocale($locale);
+        session(['locale' => $locale]);
+
+        $theme = ThemeHelper::normalize($input['app:default_theme'] ?? 'midnight');
+
+        $dbHost = trim((string) ($input['db:host'] ?? 'localhost'));
+        $dbPort = (int) ($input['db:port'] ?? 3306) ?: 3306;
+        $dbName = trim((string) ($input['db:name'] ?? 'polr'));
+        $dbUsername = trim((string) ($input['db:username'] ?? 'root'));
+        $dbPassword = (string) ($input['db:password'] ?? '');
+        $autoCreateDb = filter_var($input['db:auto_create'] ?? 'true', FILTER_VALIDATE_BOOLEAN);
+
+        $acctUsername = trim((string) ($input['acct:username'] ?? ''));
+        $acctEmail = trim((string) ($input['acct:email'] ?? ''));
+        $acctPassword = (string) ($input['acct:password'] ?? '');
+
+        if ($acctUsername === '' || $acctEmail === '' || strlen($acctPassword) < 6) {
+            return [
+                'success' => false,
+                'error' => __('polr.setup.step5.validation_error'),
+            ];
+        }
+
+        $dbCheck = self::connectDatabase($dbHost, $dbPort, $dbName, $dbUsername, $dbPassword, $autoCreateDb);
+        if (! $dbCheck['success']) {
+            return [
+                'success' => false,
+                'error' => __('polr.setup.step3.test_failed', ['error' => $dbCheck['error']]),
+            ];
+        }
+
+        $appName = trim((string) ($input['app:name'] ?? 'polrX')) ?: 'polrX';
+        $appProtocol = trim((string) ($input['app:protocol'] ?? 'https://')) ?: 'https://';
+        if (! str_ends_with($appProtocol, '://')) {
+            $appProtocol = rtrim($appProtocol, ':/').'://';
+        }
+        $appAddress = trim((string) ($input['app:external_url'] ?? 'localhost'));
+        $appAddress = preg_replace('#^https?://#i', '', $appAddress);
+        $appAddress = rtrim($appAddress, '/');
+
+        $accessMode = $input['setting:access_mode'] ?? null;
+        if ($accessMode === 'members') {
+            $stPublicInterface = 'true';
+            $stShortenPermission = 'true';
+        } elseif ($accessMode === 'private') {
+            $stPublicInterface = 'false';
+            $stShortenPermission = 'true';
+        } elseif ($accessMode === 'public') {
+            $stPublicInterface = 'true';
+            $stShortenPermission = 'false';
+        } else {
+            $stPublicInterface = ($input['setting:public_interface'] ?? 'true') === 'false' ? 'false' : 'true';
+            $stShortenPermission = ($input['setting:shorten_permission'] ?? 'false') === 'true' ? 'true' : 'false';
+        }
+
+        $regSetting = $input['setting:registration_permission'] ?? 'none';
+        if ($regSetting === 'no-verification') {
+            $polrAcctActivation = false;
+            $polrAllowAcctCreation = true;
+        } elseif ($regSetting === 'email') {
+            $polrAcctActivation = true;
+            $polrAllowAcctCreation = true;
+        } else {
+            $polrAcctActivation = false;
+            $polrAllowAcctCreation = false;
+        }
+
+        $rawBase = (int) ($input['setting:base'] ?? 32);
+        $stBase = in_array($rawBase, [32, 62], true) ? $rawBase : 32;
+        $stPseudorEnding = ($input['setting:pseudor_ending'] ?? 'false') === 'true' ? 'true' : 'false';
+        $stAdvAnalytics = ($input['setting:adv_analytics'] ?? 'true') === 'false' ? 'false' : 'true';
+        $stAutoApiKey = ($input['setting:auto_api_key'] ?? 'false') === 'true' ? 'true' : 'false';
+        $stAnonApi = ($input['setting:anon_api'] ?? 'false') === 'true' ? 'true' : 'false';
+        $stAnonApiQuota = (int) ($input['setting:anon_api_quota'] ?? 10) ?: 10;
+        $stPasswordRecov = ($input['setting:password_recovery'] ?? 'false') === 'true' ? 'true' : 'false';
+        $stRestrictEmailDomain = ($input['setting:restrict_email_domain'] ?? 'false') === 'true' ? 'true' : 'false';
+        $stAllowedEmailDomains = trim((string) ($input['setting:allowed_email_domains'] ?? ''));
+        $stIndexRedirect = trim((string) ($input['setting:index_redirect'] ?? ''));
+        $stRedirect404 = ($input['setting:redirect_404'] ?? 'false') === 'true' ? 'true' : 'false';
+
+        $mailHost = trim((string) ($input['app:smtp_server'] ?? ''));
+        $mailPort = trim((string) ($input['app:smtp_port'] ?? '587'));
+        $mailUsername = trim((string) ($input['app:smtp_username'] ?? ''));
+        $mailPassword = (string) ($input['app:smtp_password'] ?? '');
+        $mailFrom = trim((string) ($input['app:smtp_from'] ?? ''));
+        $mailFromName = trim((string) ($input['app:smtp_from_name'] ?? $appName));
+        $mailEnabled = $mailHost !== '';
+
+        // Configure runtime database connection to run migrations & create admin user before locking .env
+        Config::set('database.default', 'mysql');
+        Config::set('database.connections.mysql.host', $dbHost);
+        Config::set('database.connections.mysql.port', $dbPort);
+        Config::set('database.connections.mysql.database', $dbName);
+        Config::set('database.connections.mysql.username', $dbUsername);
+        Config::set('database.connections.mysql.password', $dbPassword);
+        DB::purge('mysql');
+        DB::reconnect('mysql');
+
+        try {
+            $exitCode = Artisan::call('migrate', ['--force' => true]);
+            if ($exitCode !== 0) {
+                return [
+                    'success' => false,
+                    'error' => 'Database migration failed (exit code '.$exitCode.').',
+                ];
+            }
+
+            $existingUser = User::where('username', $acctUsername)->first();
+            if ($existingUser) {
+                $existingUser->email = $acctEmail;
+                $existingUser->password = Hash::make($acctPassword);
+                $existingUser->role = UserHelper::$USER_ROLES['admin'];
+                $existingUser->active = 1;
+                if (Schema::hasColumn('users', 'theme')) {
+                    $existingUser->theme = $theme;
+                }
+                if (Schema::hasColumn('users', 'locale')) {
+                    $existingUser->locale = $locale;
+                }
+                $existingUser->save();
+                $adminUser = $existingUser;
+            } else {
+                $adminUser = UserFactory::createUser(
+                    $acctUsername,
+                    $acctEmail,
+                    $acctPassword,
+                    1,
+                    $clientIp,
+                    false,
+                    0,
+                    UserHelper::$USER_ROLES['admin']
+                );
+                if (Schema::hasColumn('users', 'theme')) {
+                    $adminUser->theme = $theme;
+                }
+                if (Schema::hasColumn('users', 'locale')) {
+                    $adminUser->locale = $locale;
+                }
+                $adminUser->save();
+            }
+        } catch (Throwable $e) {
+            return [
+                'success' => false,
+                'error' => 'Database setup failed: '.$e->getMessage(),
+            ];
+        }
+
+        $currentKey = config('app.key');
+        if (! $currentKey || strlen((string) $currentKey) < 16) {
+            $currentKey = 'base64:'.base64_encode(random_bytes(32));
+        }
+        $setupAuthKey = CryptoHelper::generateRandomHex(16);
 
         date_default_timezone_set('UTC');
-        $date_today = date('F jS, Y');
+        $dateToday = date('F jS, Y');
 
-        $polr_setup_ran = 'true';
-        $db_host = $request->input('db:host');
-        $db_port = $request->input('db:port');
-        $db_name = $request->input('db:name');
-        $db_username = $request->input('db:username');
-        $db_password = $request->input('db:password');
+        $compiledConfiguration = view('env', [
+            'APP_KEY' => $currentKey,
+            'APP_NAME' => $appName,
+            'APP_PROTOCOL' => $appProtocol,
+            'APP_ADDRESS' => $appAddress,
+            'APP_STYLESHEET' => '',
+            'APP_LOCALE' => $locale,
+            'POLR_GENERATED_AT' => $dateToday,
+            'POLR_SETUP_RAN' => 'true',
+            'MAXMIND_LICENSE_KEY' => trim((string) ($input['maxmind:license_key'] ?? '')),
 
-        $st_public_interface = $request->input('setting:public_interface');
+            'DB_HOST' => $dbHost,
+            'DB_PORT' => $dbPort,
+            'DB_USERNAME' => $dbUsername,
+            'DB_PASSWORD' => $dbPassword,
+            'DB_DATABASE' => $dbName,
 
-        $polr_registration_setting = $request->input('setting:registration_permission');
+            'ST_PUBLIC_INTERFACE' => $stPublicInterface,
+            'POLR_ALLOW_ACCT_CREATION' => $polrAllowAcctCreation,
+            'POLR_ACCT_ACTIVATION' => $polrAcctActivation,
+            'POLR_ACCT_CREATION_RECAPTCHA' => ($input['setting:acct_registration_recaptcha'] ?? 'false') === 'true' ? 'true' : 'false',
+            'ST_SHORTEN_PERMISSION' => $stShortenPermission,
+            'ST_INDEX_REDIRECT' => $stIndexRedirect,
+            'ST_REDIRECT_404' => $stRedirect404,
+            'ST_PASSWORD_RECOV' => $stPasswordRecov,
+            'ST_RESTRICT_EMAIL_DOMAIN' => $stRestrictEmailDomain,
+            'ST_ALLOWED_EMAIL_DOMAINS' => $stAllowedEmailDomains,
+            'POLR_RECAPTCHA_SITE_KEY' => trim((string) ($input['setting:recaptcha_site_key'] ?? '')),
+            'POLR_RECAPTCHA_SECRET' => trim((string) ($input['setting:recaptcha_secret_key'] ?? '')),
 
-        if ($polr_registration_setting == 'no-verification') {
-            $polr_acct_activation = false;
-            $polr_allow_acct_creation = true;
-        }
-        else if ($polr_registration_setting == 'none') {
-            $polr_acct_activation = false;
-            $polr_allow_acct_creation = false;
-        }
-        else if ($polr_registration_setting == 'email') {
-            $polr_acct_activation = true;
-            $polr_allow_acct_creation = true;
-        }
-        else {
-            return view('error', [
-                'message' => 'Invalid registration settings'
-            ]);
-        }
+            'MAIL_ENABLED' => $mailEnabled,
+            'MAIL_HOST' => $mailHost,
+            'MAIL_PORT' => $mailPort,
+            'MAIL_USERNAME' => $mailUsername,
+            'MAIL_PASSWORD' => $mailPassword,
+            'MAIL_FROM_ADDRESS' => $mailFrom,
+            'MAIL_FROM_NAME' => $mailFromName,
 
-        $polr_acct_creation_recaptcha = $request->input('setting:acct_registration_recaptcha');
-        $polr_recaptcha_site_key = $request->input('setting:recaptcha_site_key');
-        $polr_recaptcha_secret_key = $request->input('setting:recaptcha_secret_key');
+            'ST_BASE' => $stBase,
+            'ST_AUTO_API' => $stAutoApiKey,
+            'ST_ANON_API' => $stAnonApi,
+            'ST_ANON_API_QUOTA' => $stAnonApiQuota,
+            'ST_PSEUDOR_ENDING' => $stPseudorEnding,
+            'ST_ADV_ANALYTICS' => $stAdvAnalytics,
 
-        $maxmind_license_key = $request->input('maxmind:license_key');
-
-        $acct_username = $request->input('acct:username');
-        $acct_email = $request->input('acct:email');
-        $acct_password = $request->input('acct:password');
-        $acct_group = UserHelper::$USER_ROLES['admin'];
-
-        // if true, only logged in users can shorten
-        $st_shorten_permission = $request->input('setting:shorten_permission');
-        $st_index_redirect = $request->input('setting:index_redirect');
-        $st_redirect_404 = $request->input('setting:redirect_404');
-        $st_password_recov = $request->input('setting:password_recovery');
-        $st_restrict_email_domain = $request->input('setting:restrict_email_domain');
-        $st_allowed_email_domains = $request->input('setting:allowed_email_domains');
-
-        $st_base = $request->input('setting:base');
-        $st_auto_api_key = $request->input('setting:auto_api_key');
-        $st_anon_api = $request->input('setting:anon_api');
-        $st_anon_api_quota = $request->input('setting:anon_api_quota');
-        $st_pseudor_ending = $request->input('setting:pseudor_ending');
-        $st_adv_analytics = $request->input('setting:adv_analytics');
-
-        $mail_host = $request->input('app:smtp_server');
-        $mail_port = $request->input('app:smtp_port');
-        $mail_username = $request->input('app:smtp_username');
-        $mail_password = $request->input('app:smtp_password');
-        $mail_from = $request->input('app:smtp_from');
-        $mail_from_name = $request->input('app:smtp_from_name');
-
-        if ($mail_host) {
-            $mail_enabled = true;
-        }
-        else {
-            $mail_enabled = false;
-        }
-
-        $compiled_configuration = view('env', [
-            'APP_KEY' => $app_key,
-            'APP_NAME' => $app_name,
-            'APP_PROTOCOL' => $app_protocol,
-            'APP_ADDRESS' => $app_address,
-            'APP_STYLESHEET' => $app_stylesheet,
-            'POLR_GENERATED_AT' => $date_today,
-            'POLR_SETUP_RAN' => $polr_setup_ran,
-            'MAXMIND_LICENSE_KEY' => $maxmind_license_key,
-
-            'DB_HOST' => $db_host,
-            'DB_PORT' => $db_port,
-            'DB_USERNAME' => $db_username,
-            'DB_PASSWORD' => $db_password,
-            'DB_DATABASE' => $db_name,
-
-            'ST_PUBLIC_INTERFACE' => $st_public_interface,
-            'POLR_ALLOW_ACCT_CREATION' => $polr_allow_acct_creation,
-            'POLR_ACCT_ACTIVATION' => $polr_acct_activation,
-            'POLR_ACCT_CREATION_RECAPTCHA' => $polr_acct_creation_recaptcha,
-            'ST_SHORTEN_PERMISSION' => $st_shorten_permission,
-            'ST_INDEX_REDIRECT' => $st_index_redirect,
-            'ST_REDIRECT_404' => $st_redirect_404,
-            'ST_PASSWORD_RECOV' => $st_password_recov,
-            'ST_RESTRICT_EMAIL_DOMAIN' => $st_restrict_email_domain,
-            'ST_ALLOWED_EMAIL_DOMAINS' => $st_allowed_email_domains,
-            'POLR_RECAPTCHA_SITE_KEY' => $polr_recaptcha_site_key,
-            'POLR_RECAPTCHA_SECRET' => $polr_recaptcha_secret_key,
-
-            'MAIL_ENABLED' => $mail_enabled,
-            'MAIL_HOST' => $mail_host,
-            'MAIL_PORT' => $mail_port,
-            'MAIL_USERNAME' => $mail_username,
-            'MAIL_PASSWORD' => $mail_password,
-            'MAIL_FROM_ADDRESS' => $mail_from,
-            'MAIL_FROM_NAME' => $mail_from_name,
-
-            'ST_BASE' => $st_base,
-            'ST_AUTO_API' => $st_auto_api_key,
-            'ST_ANON_API' => $st_anon_api,
-            'ST_ANON_API_QUOTA' => $st_anon_api_quota,
-            'ST_PSEUDOR_ENDING' => $st_pseudor_ending,
-            'ST_ADV_ANALYTICS' => $st_adv_analytics,
-
-            'TMP_SETUP_AUTH_KEY' => $setup_auth_key
+            'TMP_SETUP_AUTH_KEY' => $setupAuthKey,
         ])->render();
+        App::setLocale($locale);
 
-        $handle = fopen('../.env', 'w');
-        if (fwrite($handle, $compiled_configuration) === FALSE) {
-            $response = view('error', [
-                'message' => 'Could not write configuration to disk.'
-            ]);
-        } else {
-            Cache::flush();
-
-            $setup_finish_arguments = json_encode([
-                'acct_username' => $acct_username,
-                'acct_email' => $acct_email,
-                'acct_password' => $acct_password,
-                'setup_auth_key' => $setup_auth_key
-            ]);
-
-            $response = redirect(route('setup_finish'));
-
-            // set cookie with information needed for finishSetup, expire in 60 seconds
-            // we use PHP's setcookie rather than Laravel's cookie capabilities because
-            // our app key changes and Laravel encrypts cookies.
-            setcookie('setup_arguments', $setup_finish_arguments, time()+60);
+        $envPath = base_path('.env');
+        if (@file_put_contents($envPath, $compiledConfiguration) === false) {
+            return [
+                'success' => false,
+                'error' => 'Could not write configuration to .env on disk. Check directory write permissions.',
+            ];
         }
 
-        fclose($handle);
-        return $response;
+        try {
+            Cache::flush();
+        } catch (Throwable) {
+        }
 
+        return [
+            'success' => true,
+            'admin_username' => $acctUsername,
+            'site_url' => $appProtocol.$appAddress,
+            'theme' => $theme,
+            'locale' => $locale,
+        ];
     }
 
-    public static function finishSetup(Request $request) {
-        if (!isset($_COOKIE['setup_arguments'])) {
-            // Abort if setup arguments are missing.
-            abort(404);
+    public function performSetup(Request $request)
+    {
+        if (env('POLR_SETUP_RAN')) {
+            return view('error', [
+                'message' => __('polr.setup.already_completed'),
+            ]);
         }
 
-        $setup_finish_args_raw = $_COOKIE['setup_arguments'];
-        $setup_finish_args = json_decode($setup_finish_args_raw);
+        $result = self::runInstallation($request->all(), (string) $request->ip());
 
-        // unset cookie
-        setcookie('setup_arguments', '', time()-3600);
-
-        $transaction_authorised = env('TMP_SETUP_AUTH_KEY') === $setup_finish_args->setup_auth_key;
-
-        if ($transaction_authorised != true) {
-            abort(403, 'Transaction unauthorised.');
-        }
-
-        $usersTableExists = Schema::hasTable('users');
-
-        if ($usersTableExists) {
-            // If the users table exists, then the setup process may have already been completed before.
-            abort(403, 'Setup has been completed already.');
-        }
-
-        $database_created = self::createDatabase();
-        if (!$database_created) {
-            return redirect(route('setup'))->with('error', 'Could not create database. Perhaps your credentials were incorrect?');
-        }
-
-        if (env('SETTING_ADV_ANALYTICS')) {
-            $geoip_db_created = self::updateGeoIP();
-            if (!$geoip_db_created) {
-                return redirect(route('setup'))->with('error', 'Could not fetch GeoIP database for advanced analytics. Perhaps your server is not connected to the internet or your MAXMIND_LICENSE_KEY is incorrect?');
+        if (! $result['success']) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $result['error'],
+                ], 422);
             }
+
+            return redirect(route('setup'))->with('error', $result['error']);
         }
 
-        $user = UserFactory::createUser($setup_finish_args->acct_username, $setup_finish_args->acct_email, $setup_finish_args->acct_password, 1, $request->ip(), false, 0, UserHelper::$USER_ROLES['admin']);
+        $request->session()->put('username', $result['admin_username']);
+        $request->session()->put('role', UserHelper::$USER_ROLES['admin']);
+        $request->session()->put('theme', $result['theme']);
+        $request->session()->put('locale', $result['locale']);
+        $request->session()->put('setup_completed_info', $result);
 
-        return view('setup_thanks')->with('success', 'Set up completed! Thanks for using Polr!');
+        $cookie = cookie('polrx_locale', $result['locale'], 60 * 24 * 365);
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'redirect' => route('setup_finish'),
+            ])->withCookie($cookie);
+        }
+
+        return redirect(route('setup_finish'))->withCookie($cookie);
+    }
+
+    public function finishSetup(Request $request)
+    {
+        $info = $request->session()->get('setup_completed_info');
+
+        if (! $info && ! env('POLR_SETUP_RAN')) {
+            return redirect(route('setup'));
+        }
+
+        return view('setup_thanks', [
+            'admin_username' => $info['admin_username'] ?? session('username', 'admin'),
+            'site_url' => $info['site_url'] ?? (env('APP_PROTOCOL', 'https://').env('APP_ADDRESS', 'localhost')),
+        ]);
     }
 }

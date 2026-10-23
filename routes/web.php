@@ -41,6 +41,8 @@ Route::post('/admin/action/change_locale', [AdminController::class, 'changeLocal
 Route::post('/locale', [AdminController::class, 'changeLocale'])->name('change_locale');
 
 Route::get('/setup', [SetupController::class, 'displaySetupPage'])->name('setup');
+Route::post('/setup/check', [SetupController::class, 'checkEnvironment'])->name('setup_check');
+Route::post('/setup/test-db', [SetupController::class, 'testDatabaseConnection'])->name('setup_test_db');
 Route::post('/setup', [SetupController::class, 'performSetup'])->name('psetup');
 Route::get('/setup/finish', [SetupController::class, 'finishSetup'])->name('setup_finish');
 

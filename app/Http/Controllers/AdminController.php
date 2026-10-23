@@ -205,7 +205,7 @@ class AdminController extends Controller
         $request->session()->put('locale', $locale);
         App::setLocale($locale);
 
-        if ($this->isLoggedIn()) {
+        if (env('POLR_SETUP_RAN') && $this->isLoggedIn()) {
             $user = UserHelper::getUserByUsername(session('username'));
             if ($user && Schema::hasColumn('users', 'locale')) {
                 $user->locale = $locale;

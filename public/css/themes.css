@@ -710,7 +710,7 @@ table.dataTable > tbody > tr > td,
    ========================================================================== */
 .polrx-theme-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
     gap: 16px;
     margin-top: 14px;
 }
@@ -786,4 +786,81 @@ table.dataTable > tbody > tr > td,
     font-size: 13px;
     color: var(--polrx-text-muted);
     line-height: 1.45;
+}
+
+/* ==========================================================================
+   Language Selector Cards in Admin Panel & Setup Wizard
+   ========================================================================== */
+.polrx-lang-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+    gap: 16px;
+    margin-top: 14px;
+}
+
+.polrx-lang-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: 18px;
+    border-radius: 12px;
+    border: 2px solid var(--polrx-border);
+    background-color: var(--polrx-surface-alt);
+    cursor: pointer;
+    transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+    user-select: none;
+}
+
+.polrx-lang-card:hover {
+    transform: translateY(-2px);
+    background-color: var(--polrx-surface);
+    border-color: var(--polrx-primary);
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.12);
+}
+
+.polrx-lang-card.is-active {
+    background-color: var(--polrx-surface);
+    border-color: var(--polrx-primary);
+    box-shadow: 0 0 0 3px var(--polrx-primary-soft);
+}
+
+.polrx-lang-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.polrx-lang-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 28px;
+    border-radius: 7px;
+    font-size: 12px;
+    font-weight: 800;
+    background-color: var(--polrx-primary-soft);
+    color: var(--polrx-primary);
+}
+
+.polrx-theme-active-pill {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background-color: var(--polrx-primary);
+    color: #ffffff;
+}
+
+.polrx-lang-native {
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--polrx-heading);
+    margin-bottom: 4px;
+}
+
+.polrx-lang-sub {
+    font-size: 12px;
+    color: var(--polrx-text-muted);
 }

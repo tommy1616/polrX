@@ -9,7 +9,39 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
-return Application::configure(basePath: dirname(__DIR__))
+$basePath = dirname(__DIR__);
+$envPath = $basePath.'/.env';
+
+if (! file_exists($envPath)) {
+    $generatedKey = 'base64:'.base64_encode(random_bytes(32));
+    $initialEnv = implode("\n", [
+        'APP_ENV=production',
+        'APP_DEBUG=false',
+        'APP_KEY="'.$generatedKey.'"',
+        'APP_NAME="polrX"',
+        'APP_LOCALE=zh_TW',
+        'APP_FALLBACK_LOCALE=zh_TW',
+        'POLR_SETUP_RAN=false',
+        'CACHE_DRIVER=file',
+        'SESSION_DRIVER=file',
+        'QUEUE_DRIVER=sync',
+        'VERSION=2.3.0',
+        'VERSION_RELMONTH=Oct',
+        'VERSION_RELDAY=24',
+        'VERSION_RELYEAR=2026',
+        '',
+    ]);
+
+    if (is_writable($basePath)) {
+        @file_put_contents($envPath, $initialEnv);
+    } else {
+        putenv('APP_KEY='.$generatedKey);
+        $_ENV['APP_KEY'] = $generatedKey;
+        $_SERVER['APP_KEY'] = $generatedKey;
+    }
+}
+
+return Application::configure(basePath: $basePath)
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
         commands: __DIR__.'/../routes/console.php',

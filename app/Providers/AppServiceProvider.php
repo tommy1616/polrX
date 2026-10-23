@@ -49,9 +49,11 @@ class AppServiceProvider extends ServiceProvider
             $queryLocale = $req ? $req->query('lang') : null;
             $locale = ($queryLocale && LocaleHelper::isValid($queryLocale))
                 ? $queryLocale
-                : (session('locale') ?: ($req ? $req->cookie('polrx_locale') : null));
+                : (session('locale') ?: ($req ? $req->cookie('polrx_locale') : App::getLocale()));
 
-            if ((! $theme || ! $locale) && session('username')) {
+            $setupRan = (bool) env('POLR_SETUP_RAN', false);
+
+            if ($setupRan && (! $theme || ! $locale) && session('username')) {
                 try {
                     $user = UserHelper::getUserByUsername(session('username'));
                     if ($user) {

@@ -19,7 +19,9 @@ class SetLocaleMiddleware
             $locale = $request->session()->get('locale') ?: $request->cookie('polrx_locale');
         }
 
-        if (! $locale && $request->session()->get('username')) {
+        $setupRan = (bool) env('POLR_SETUP_RAN', false);
+
+        if ($setupRan && ! $locale && $request->session()->get('username')) {
             try {
                 $user = UserHelper::getUserByUsername($request->session()->get('username'));
                 if ($user && ! empty($user->locale)) {
@@ -33,6 +35,10 @@ class SetLocaleMiddleware
         $normalized = LocaleHelper::normalize($locale);
         $request->session()->put('locale', $normalized);
         App::setLocale($normalized);
+
+        if (! $setupRan && ! $request->is('setup', 'setup/*', 'locale', 'up')) {
+            return redirect('/setup');
+        }
 
         return $next($request);
     }

@@ -6,8 +6,8 @@
 @endsection
 
 @section('content')
-<div class='well logo-well'>
-    <img class='logo-img' src='/img/logo.png' />
+<div class='well logo-well' style='display:inline-flex;align-items:center;justify-content:center;padding:24px;width:auto;border-radius:20px;'>
+    <img class='logo-img' src='/favicon.svg' alt='polrX Logo' style='width:128px;height:128px;' />
 </div>
 
 <div class='about-contents'>

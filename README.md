@@ -1,6 +1,10 @@
+<p align="center">
+  <img src="public/favicon.svg" width="96" height="96" alt="polrX Logo" />
+</p>
+
 # polrX
 
-:aerial_tramway: 簡潔、輕量、可自行架設的短網址服務 —— [Polr](https://github.com/cydrobolt/polr) 的社群維護分支。
+簡潔、輕量、可自行架設的短網址服務 —— [Polr](https://github.com/cydrobolt/polr) 的現代化 Laravel 13 重構分支。
 
 [![License: GPL v2+](https://img.shields.io/badge/license-GPLv2%2B-blue.svg)](LICENSE)
 [![Upstream](https://img.shields.io/badge/upstream-cydrobolt%2Fpolr-lightgrey.svg)](https://github.com/cydrobolt/polr)

@@ -18,7 +18,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 -->
 
 <!DOCTYPE html>
-<html ng-app="polr" data-theme="{{ isset($user_theme) ? $user_theme : 'default' }}">
+<html lang="{{ isset($current_locale_meta) ? $current_locale_meta['html_lang'] : 'zh-TW' }}" ng-app="polr" data-theme="{{ isset($user_theme) ? $user_theme : 'default' }}">
 <head>
     <title>@section('title'){{env('APP_NAME')}}@show</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -26,6 +26,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="current-username" content="{{ session('username') ? session('username') : '' }}">
     <meta name="current-theme" content="{{ isset($user_theme) ? $user_theme : 'default' }}">
+    <meta name="current-locale" content="{{ isset($user_locale) ? $user_locale : 'zh_TW' }}">
     <meta name="generator" content="Polr {{env('POLR_VERSION')}}" />
     @yield('meta')
 
@@ -43,6 +44,32 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
     <link rel="shortcut icon" href="/favicon.svg">
     @yield('css')
     <link href="/css/themes.css" rel="stylesheet">
+
+    <script>
+    window.POLR_I18N = {!! json_encode([
+        'toast' => __('polr.toast'),
+        'index' => [
+            'tip_1' => __('polr.index.tip_1'),
+            'tip_2' => __('polr.index.tip_2'),
+            'checking' => __('polr.index.checking'),
+            'unavailable' => __('polr.index.unavailable'),
+            'available' => __('polr.index.available'),
+            'invalid_ending' => __('polr.index.invalid_ending'),
+            'error_retry' => __('polr.index.error_retry'),
+        ],
+        'datatables' => __('polr.admin.datatables'),
+        'admin_js' => __('polr.admin.js'),
+        'modals' => __('polr.admin.modals'),
+        'users' => [
+            'active' => __('polr.admin.users.active'),
+            'inactive' => __('polr.admin.users.inactive'),
+        ],
+        'links' => [
+            'disable' => __('polr.admin.links.disable'),
+            'enable' => __('polr.admin.links.enable'),
+        ],
+    ], JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!};
+    </script>
 </head>
 <body>
     @include('snippets.navbar')
@@ -61,21 +88,21 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
     <script>
     @if (session()->has('info'))
-        toastr["info"](`{{ str_replace('`', '\\`', session('info')) }}`, "提示")
+        toastr["info"](`{{ str_replace('`', '\\`', session('info')) }}`, `{{ __('polr.toast.info') }}`)
     @endif
     @if (session()->has('error'))
-        toastr["error"](`{{str_replace('`', '\\`', session('error')) }}`, "錯誤")
+        toastr["error"](`{{str_replace('`', '\\`', session('error')) }}`, `{{ __('polr.toast.error') }}`)
     @endif
     @if (session()->has('warning'))
-        toastr["warning"](`{{ str_replace('`', '\\`', session('warning')) }}`, "警告")
+        toastr["warning"](`{{ str_replace('`', '\\`', session('warning')) }}`, `{{ __('polr.toast.warning') }}`)
     @endif
     @if (session()->has('success'))
-        toastr["success"](`{{ str_replace('`', '\\`', session('success')) }}`, "成功")
+        toastr["success"](`{{ str_replace('`', '\\`', session('success')) }}`, `{{ __('polr.toast.success') }}`)
     @endif
 
     @if (count($errors) > 0)
         @foreach ($errors->all() as $error)
-            toastr["error"](`{{ str_replace('`', '\\`', $error) }}`, "錯誤")
+            toastr["error"](`{{ str_replace('`', '\\`', $error) }}`, `{{ __('polr.toast.error') }}`)
         @endforeach
     @endif
     </script>

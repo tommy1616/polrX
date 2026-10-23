@@ -8,23 +8,26 @@ polr.directive('editLongLinkModal', function () {
         templateUrl: '/directives/editLongLinkModal.html',
         transclude: true,
         controller: function ($scope, $element, $timeout) {
+            var i18n = window.POLR_I18N || {};
+            var toastTitles = i18n.toast || { success: 'Success', error: 'Error' };
+            var jsMsg = i18n.admin_js || {};
+            $scope.modalI18n = i18n.modals || {};
+
             $scope.init = function () {
-                // Destroy directive and clean modal on close
                 $element.find('.modal').on("hidden.bs.modal", function () {
                     $scope.$destroy();
                     $scope.cleanModals('editLongLink');
                 });
-            }
+            };
 
             $scope.saveChanges = function () {
-                // Save long URL changes
                 apiCall('admin/edit_link_long_url', {
                     'link_ending': $scope.linkEnding,
                     'new_long_url': $element.find('input').val()
                 }, function(data) {
-                    toastr.success('短網址已更新。', '成功')
+                    toastr.success(jsMsg.link_updated || 'Updated', toastTitles.success);
                 }, function(err) {
-                    toastr.error('新的網址格式不正確。', '錯誤');
+                    toastr.error(jsMsg.invalid_url || 'Invalid URL', toastTitles.error);
                 });
             };
 
@@ -46,17 +49,20 @@ polr.directive('editUserApiInfoModal', function () {
         templateUrl: '/directives/editUserApiInfoModal.html',
         transclude: true,
         controller: function ($scope, $element, $timeout) {
+            var i18n = window.POLR_I18N || {};
+            var toastTitles = i18n.toast || { success: 'Success', error: 'Error' };
+            var jsMsg = i18n.admin_js || {};
+            $scope.modalI18n = i18n.modals || {};
+
             $scope.init = function () {
-                // Destroy directive and clean modal on close
                 $element.find('.modal').on("hidden.bs.modal", function () {
                     $scope.$destroy();
                     $scope.cleanModals('editUserApiInfo');
                 });
 
                 $scope.apiActive = res_value_to_text($scope.apiActive);
-            }
+            };
 
-            // Toggle API access status
             $scope.toggleAPIStatus = function() {
                 apiCall('admin/toggle_api_active', {
                     'user_id': $scope.userId,
@@ -66,18 +72,16 @@ polr.directive('editUserApiInfoModal', function () {
                 });
             };
 
-            // Generate new API key for user_id
             $scope.parentGenerateNewAPIKey = function($event) {
                 $scope.generateNewApiKey($event, $scope.userId, false);
             };
 
-            // Update user API quotas
             $scope.updateAPIQuota = function() {
                 apiCall('admin/edit_api_quota', {
                     'user_id': $scope.userId,
                     'new_quota': parseInt($scope.apiQuota)
                 }, function(next_action) {
-                    toastr.success("API 額度已更新。", "成功");
+                    toastr.success(jsMsg.quota_updated || 'Updated', toastTitles.success);
                 });
             };
 
@@ -87,7 +91,13 @@ polr.directive('editUserApiInfoModal', function () {
 });
 
 polr.controller('AdminCtrl', function($scope, $compile, $timeout) {
-    /* Initialize $scope variables */
+    var i18n = window.POLR_I18N || {};
+    var dtI18n = i18n.datatables || {};
+    var jsMsg = i18n.admin_js || {};
+    var toastTitles = i18n.toast || { success: 'Success', error: 'Error' };
+    var usersI18n = i18n.users || {};
+    var linksI18n = i18n.links || {};
+
     $scope.state = {
         showNewUserWell: false
     };
@@ -118,29 +128,27 @@ polr.controller('AdminCtrl', function($scope, $compile, $timeout) {
         $scope.reloadLinkTables();
     };
 
-    // Initialise Datatables elements
     $scope.initTables = function() {
         var datatables_config = {
             'autoWidth': false,
             'processing': true,
             'serverSide': true,
             'language': {
-                'sProcessing': '處理中...',
-                'sLengthMenu': '顯示 _MENU_ 筆',
-                'sZeroRecords': '找不到符合的資料',
-                'sInfo': '顯示第 _START_ 到 _END_ 筆，共 _TOTAL_ 筆',
-                'sInfoEmpty': '顯示 0 到 0 筆，共 0 筆',
-                'sInfoFiltered': '(從 _MAX_ 筆資料中篩選)',
-                'sSearch': '搜尋:',
-                'sLoadingRecords': '載入中...',
+                'sProcessing': dtI18n.processing || 'Processing...',
+                'sLengthMenu': dtI18n.length_menu || 'Show _MENU_ entries',
+                'sZeroRecords': dtI18n.zero_records || 'No matching records found',
+                'sInfo': dtI18n.info || 'Showing _START_ to _END_ of _TOTAL_ entries',
+                'sInfoEmpty': dtI18n.info_empty || 'Showing 0 to 0 of 0 entries',
+                'sInfoFiltered': dtI18n.info_filtered || '(filtered from _MAX_ total entries)',
+                'sSearch': dtI18n.search || 'Search:',
+                'sLoadingRecords': dtI18n.loading || 'Loading...',
                 'oPaginate': {
-                    'sPrevious': '上一頁',
-                    'sNext': '下一頁'
+                    'sPrevious': dtI18n.previous || 'Previous',
+                    'sNext': dtI18n.next || 'Next'
                 }
             },
 
             'drawCallback': function () {
-                // Compile Angular bindings on each draw
                 $compile($(this))($scope);
             }
         };
@@ -174,7 +182,6 @@ polr.controller('AdminCtrl', function($scope, $compile, $timeout) {
 
                     {data: 'disable', name: 'disable', orderable: false, searchable: false},
                     {data: 'delete', name: 'delete', orderable: false, searchable: false}
-
                 ]
             }, datatables_config));
         }
@@ -192,8 +199,6 @@ polr.controller('AdminCtrl', function($scope, $compile, $timeout) {
     };
 
     $scope.reloadLinkTables = function () {
-        // Reload DataTables for affected tables
-        // without resetting page
         if ('admin_links_table' in $scope.datatables) {
             $scope.datatables['admin_links_table'].ajax.reload(null, false);
         }
@@ -205,16 +210,13 @@ polr.controller('AdminCtrl', function($scope, $compile, $timeout) {
         $scope.datatables['admin_users_table'].ajax.reload(null, false);
     };
 
-    /*
-        User Management
-    */
     $scope.toggleUserActiveStatus = function($event, user_id) {
         var el = $($event.target);
 
         apiCall('admin/toggle_user_active', {
             'user_id': user_id,
         }, function(new_status) {
-            var text = (new_status == 1) ? '已啟用' : '已停用';
+            var text = (new_status == 1) ? (usersI18n.active || 'Active') : (usersI18n.inactive || 'Inactive');
             el.text(text);
             if (el.hasClass('btn-success')) {
                 el.removeClass('btn-success').addClass('btn-danger');
@@ -223,9 +225,8 @@ polr.controller('AdminCtrl', function($scope, $compile, $timeout) {
                 el.removeClass('btn-danger').addClass('btn-success');
             }
         });
-    }
+    };
 
-    // Generate new API key for user_id
     $scope.generateNewAPIKey = function($event, user_id, is_dev_tab) {
         var el = $($event.target);
         var status_display_elem = el.prevAll('.status-display');
@@ -255,13 +256,11 @@ polr.controller('AdminCtrl', function($scope, $compile, $timeout) {
         });
 
         return response;
-    }
+    };
 
     $scope.addNewUser = function($event) {
-        // Allow admins to add new users
-
         if (!$scope.checkNewUserFields()) {
-            toastr.error("欄位不可為空。", "錯誤");
+            toastr.error(jsMsg.fields_cannot_be_empty || 'Fields cannot be empty.', toastTitles.error);
             return false;
         }
 
@@ -271,23 +270,22 @@ polr.controller('AdminCtrl', function($scope, $compile, $timeout) {
             'user_email': $scope.newUserParams.userEmail,
             'user_role': $scope.newUserParams.userRole,
         }, function(result) {
-            toastr.success("使用者 " + $scope.newUserParams.username + " 已建立。", "成功");
+            toastr.success(jsMsg.user_created || 'User created.', toastTitles.success);
             $('#new-user-form').clearForm();
             $scope.datatables['admin_users_table'].ajax.reload();
         }, function () {
-            toastr.error("建立使用者時發生錯誤。", "錯誤");
+            toastr.error(jsMsg.user_create_error || 'Error creating user.', toastTitles.error);
         });
-    }
+    };
 
-    // Delete user
     $scope.deleteUser = function($event, user_id) {
-        var delete_user_confirm = window.confirm('確定要刪除這個使用者嗎？');
+        var delete_user_confirm = window.confirm(jsMsg.confirm_delete_user || 'Delete user?');
 
         if (delete_user_confirm) {
             apiCall('admin/delete_user', {
                 'user_id': user_id,
             }, function(new_status) {
-                toastr.success('使用者已刪除。', '成功');
+                toastr.success(jsMsg.user_deleted || 'User deleted.', toastTitles.success);
                 $scope.reloadUserTables();
             });
         }
@@ -298,14 +296,11 @@ polr.controller('AdminCtrl', function($scope, $compile, $timeout) {
             'user_id': user_id,
             'role': role,
         }, function(result) {
-            toastr.success("使用者角色已更新。", "成功");
+            toastr.success(jsMsg.role_updated || 'Role updated.', toastTitles.success);
         });
     };
 
-    // Open user API settings menu
     $scope.openAPIModal = function($event, username, api_key, api_active, api_quota, user_id) {
-        var el = $($event.target);
-
         $scope.modals.editUserApiInfo.push({
             apiKey: api_key,
             apiQuota: parseInt(api_quota),
@@ -318,46 +313,38 @@ polr.controller('AdminCtrl', function($scope, $compile, $timeout) {
         });
     };
 
-    /*
-        Link Management
-    */
-
-    // Delete link
     $scope.deleteLink = function($event, link_ending) {
-        var delete_link_confirm = window.confirm('確定要刪除這個短網址嗎？');
+        var delete_link_confirm = window.confirm(jsMsg.confirm_delete_link || 'Delete link?');
 
         if (delete_link_confirm) {
             apiCall('admin/delete_link', {
                 'link_ending': link_ending,
             }, function(new_status) {
-                toastr.success('短網址已刪除。', '成功');
+                toastr.success(jsMsg.link_deleted || 'Link deleted.', toastTitles.success);
                 $scope.reloadLinkTables();
             });
         }
     };
 
-    // Disable and enable links
     $scope.toggleLink = function($event, link_ending) {
         var el = $($event.target);
-        var curr_action = el.text();
 
         apiCall('admin/toggle_link', {
             'link_ending': link_ending,
         }, function(next_action) {
-            toastr.success(curr_action + " was successful.", "Success");
+            toastr.success(jsMsg.link_toggled || 'Updated.', toastTitles.success);
             if (next_action == 'Disable') {
                 el.removeClass('btn-success');
                 el.addClass('btn-danger');
+                el.text(linksI18n.disable || 'Disable');
             } else {
                 el.removeClass('btn-danger');
                 el.addClass('btn-success');
+                el.text(linksI18n.enable || 'Enable');
             }
-
-            el.text(next_action);
         });
     };
 
-    // Edit links' long_url
     $scope.editLongLink = function(link_ending, old_long_link) {
         $scope.modals.editLongLink.push({
             linkEnding: link_ending,
@@ -367,16 +354,9 @@ polr.controller('AdminCtrl', function($scope, $compile, $timeout) {
         $timeout(function () {
             $('#edit-long-link-' + link_ending).modal('show');
         });
-    }
+    };
 
-    /*
-        Initialisation
-    */
-
-    // Initialise AdminCtrl
     $scope.init = function() {
-        var modal_source = $("#modal-template").html();
-
         $('.admin-nav a').click(function(e) {
             e.preventDefault();
             $(this).tab('show');

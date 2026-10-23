@@ -2,8 +2,10 @@
 
 namespace App\Providers;
 
+use App\Helpers\LocaleHelper;
 use App\Helpers\ThemeHelper;
 use App\Helpers\UserHelper;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -19,6 +21,8 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        $this->app->useLangPath(base_path('lang'));
+
         $aliases = [
             'Artisan' => Artisan::class,
             'Cache' => Cache::class,
@@ -41,19 +45,39 @@ class AppServiceProvider extends ServiceProvider
     {
         View::composer('*', function ($view) {
             $theme = session('theme');
+            $req = app()->bound('request') ? request() : null;
+            $queryLocale = $req ? $req->query('lang') : null;
+            $locale = ($queryLocale && LocaleHelper::isValid($queryLocale))
+                ? $queryLocale
+                : (session('locale') ?: ($req ? $req->cookie('polrx_locale') : null));
 
-            if (! $theme && session('username')) {
+            if ((! $theme || ! $locale) && session('username')) {
                 try {
                     $user = UserHelper::getUserByUsername(session('username'));
-                    $theme = $user ? $user->theme : 'default';
-                    session(['theme' => ThemeHelper::normalize($theme)]);
+                    if ($user) {
+                        if (! $theme) {
+                            $theme = $user->theme ?: 'default';
+                            session(['theme' => ThemeHelper::normalize($theme)]);
+                        }
+                        if (! $locale && ! empty($user->locale)) {
+                            $locale = $user->locale;
+                            session(['locale' => LocaleHelper::normalize($locale)]);
+                        }
+                    }
                 } catch (\Throwable) {
-                    $theme = 'default';
+                    $theme = $theme ?: 'default';
+                    $locale = $locale ?: LocaleHelper::DEFAULT_LOCALE;
                 }
             }
 
+            $normalizedLocale = LocaleHelper::normalize($locale);
+            App::setLocale($normalizedLocale);
+
             $view->with('user_theme', ThemeHelper::normalize($theme));
             $view->with('available_themes', ThemeHelper::all());
+            $view->with('user_locale', $normalizedLocale);
+            $view->with('current_locale_meta', LocaleHelper::currentMeta($normalizedLocale));
+            $view->with('available_locales', LocaleHelper::all());
         });
     }
 }

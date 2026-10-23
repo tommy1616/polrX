@@ -9,14 +9,6 @@ use App\Models\User;
 use App\Helpers\UserHelper;
 
 class AdminPaginationController extends Controller {
-    /**
-     * Process AJAX Datatables pagination queries from the admin panel.
-     *
-     * @return Response
-     */
-
-    /* Cell rendering functions */
-
     private function escapeJsArg($value): string {
         return e(addcslashes((string) $value, "\\'\n\r"));
     }
@@ -38,45 +30,41 @@ class AdminPaginationController extends Controller {
     }
 
     public function renderDeleteUserCell($user) {
-        // Add "Delete" action button
         $btn_class = '';
         if (session('username') === $user->username) {
             $btn_class = 'disabled';
         }
         return '<a ng-click="deleteUser($event, \''. $user->id .'\')" class="btn btn-sm btn-danger ' . $btn_class . '">
-            刪除
+            ' . e(__('polr.admin.users.delete')) . '
         </a>';
     }
 
     public function renderDeleteLinkCell($link) {
-        // Add "Delete" action button
         return '<a ng-click="deleteLink($event, \'' . e($link->short_url)  . '\')"
             class="btn btn-sm btn-warning delete-link">
-            刪除
+            ' . e(__('polr.admin.links.delete')) . '
         </a>';
     }
 
     public function renderAdminApiActionCell($user) {
-        // Add "API Info" action button
         return '<a class="activate-api-modal btn btn-sm btn-info"
             ng-click="openAPIModal($event, \'' . e($user->username) . '\', \'' . $user->api_key . '\', \'' . $user->api_active . '\', \'' . e($user->api_quota) . '\', \'' . $user->id . '\')">
-            API 資訊
+            ' . e(__('polr.admin.users.api_info')) . '
         </a>';
     }
 
     public function renderToggleUserActiveCell($user) {
-        // Add user account active state toggle buttons
         $btn_class = '';
         if (session('username') === $user->username) {
             $btn_class = ' disabled';
         }
 
         if ($user->active) {
-            $active_text = '已啟用';
+            $active_text = e(__('polr.admin.users.active'));
             $btn_color_class = ' btn-success';
         }
         else {
-            $active_text = '已停用';
+            $active_text = e(__('polr.admin.users.inactive'));
             $btn_color_class = ' btn-danger';
         }
 
@@ -84,22 +72,16 @@ class AdminPaginationController extends Controller {
     }
 
     public function renderChangeUserRoleCell($user) {
-        // Add "change role" select box
-        // <select> field does not use Angular bindings
-        // because of an issue affecting fields with duplicate names.
-
         $select_role = '<select ng-init="changeUserRole.u' . $user->id . ' = \'' . e($user->role) . '\'"
             ng-model="changeUserRole.u' . $user->id . '" ng-change="changeUserRole(changeUserRole.u' . $user->id . ', '.$user->id.')"
             class="form-control"';
 
         if (session('username') === $user->username) {
-            // Do not allow user to change own role
             $select_role .= ' disabled';
         }
         $select_role .= '>';
 
         foreach (UserHelper::$USER_ROLES as $role_text => $role_val) {
-            // Iterate over each available role and output option
             $select_role .= '<option value="' . e($role_val) . '"';
 
             if ($user->role === $role_val) {
@@ -114,21 +96,18 @@ class AdminPaginationController extends Controller {
     }
 
     public function renderToggleLinkActiveCell($link) {
-        // Add "Disable/Enable" action buttons
         $btn_class = 'btn-danger';
-        $btn_text = '停用';
+        $btn_text = e(__('polr.admin.links.disable'));
 
         if ($link->is_disabled) {
             $btn_class = 'btn-success';
-            $btn_text = '啟用';
+            $btn_text = e(__('polr.admin.links.enable'));
         }
 
         return '<a ng-click="toggleLink($event, \'' . e($link->short_url) . '\')" class="btn btn-sm ' . $btn_class . '">
             ' . $btn_text . '
         </a>';
     }
-
-    /* DataTables bindings */
 
     public function paginateAdminUsers(Request $request) {
         self::ensureAdmin();

@@ -10,49 +10,51 @@
     <div class="row admin-layout-row">
     <div class='col-md-2'>
         <ul class='nav nav-pills nav-stacked admin-nav' role='tablist'>
-            <li role='presentation' aria-controls="home" class='admin-nav-item active'><a href='#home'>首頁</a></li>
-            <li role='presentation' aria-controls="links" class='admin-nav-item'><a href='#links'>連結</a></li>
-            <li role='presentation' aria-controls="settings" class='admin-nav-item'><a href='#settings'>設定</a></li>
+            <li role='presentation' aria-controls="home" class='admin-nav-item active'><a href='#home'>{{ __('polr.admin.nav.home') }}</a></li>
+            <li role='presentation' aria-controls="links" class='admin-nav-item'><a href='#links'>{{ __('polr.admin.nav.links') }}</a></li>
+            <li role='presentation' aria-controls="settings" class='admin-nav-item'><a href='#settings'>{{ __('polr.admin.nav.settings') }}</a></li>
+            <li role='presentation' aria-controls="totp" class='admin-nav-item'><a href='#totp'>{{ __('polr.admin.nav.totp') }}</a></li>
+            <li role='presentation' aria-controls="language" class='admin-nav-item'><a href='#language'>{{ __('polr.admin.nav.language') }}</a></li>
 
             @if ($role == $admin_role)
-            <li role='presentation' class='admin-nav-item'><a href='#admin'>管理</a></li>
+            <li role='presentation' class='admin-nav-item'><a href='#admin'>{{ __('polr.admin.nav.admin') }}</a></li>
             @endif
 
             @if ($api_active == 1)
-            <li role='presentation' class='admin-nav-item'><a href='#developer'>開發者</a></li>
+            <li role='presentation' class='admin-nav-item'><a href='#developer'>{{ __('polr.admin.nav.developer') }}</a></li>
             @endif
         </ul>
     </div>
     <div class='col-md-10'>
         <div class="tab-content">
             <div role="tabpanel" class="tab-pane active" id="home">
-                <h2>歡迎使用 {{env('APP_NAME')}} 後台</h2>
-                <p class="polrx-muted">請使用左側選單管理你的短網址、帳號與設定。</p>
+                <h2>{{ __('polr.admin.home.welcome', ['app' => env('APP_NAME')]) }}</h2>
+                <p class="polrx-muted">{{ __('polr.admin.home.desc') }}</p>
             </div>
 
             <div role="tabpanel" class="tab-pane" id="links">
-                <h3>我的連結</h3>
+                <h3>{{ __('polr.admin.links.my_links') }}</h3>
                 @include('snippets.link_table', [
                     'table_id' => 'user_links_table'
                 ])
             </div>
 
             <div role="tabpanel" class="tab-pane" id="settings">
-                <h3>修改密碼</h3>
+                <h3>{{ __('polr.admin.settings.change_password') }}</h3>
                 <form action='/admin/action/change_password' method='POST' class="polrx-form-narrow">
-                    <label class="polrx-field-label">目前密碼</label>
+                    <label class="polrx-field-label">{{ __('polr.admin.settings.current_password') }}</label>
                     <input class="form-control password-box" type='password' name='current_password' />
-                    <label class="polrx-field-label">新密碼</label>
+                    <label class="polrx-field-label">{{ __('polr.admin.settings.new_password') }}</label>
                     <input class="form-control password-box" type='password' name='new_password' />
                     <input type="hidden" name='_token' value='{{csrf_token()}}' />
-                    <input type='submit' class='btn btn-primary change-password-btn' value='更新密碼'/>
+                    <input type='submit' class='btn btn-primary change-password-btn' value='{{ __('polr.admin.settings.update_password_btn') }}'/>
                 </form>
 
                 <hr class="polrx-divider">
 
                 <div class="theme-selector">
-                    <h3>介面主題</h3>
-                    <p class="polrx-muted" style="margin-bottom: 14px;">選擇偏好的視覺主題，點擊後會立即套用並綁定至你的帳號。</p>
+                    <h3>{{ __('polr.admin.settings.theme_title') }}</h3>
+                    <p class="polrx-muted" style="margin-bottom: 14px;">{{ __('polr.admin.settings.theme_desc') }}</p>
                     <div class="polrx-theme-grid">
                         @foreach ($available_themes as $themeKey => $themeMeta)
                         <div class="polrx-theme-card {{ ($user_theme === $themeKey) ? 'is-active' : '' }}"
@@ -67,86 +69,112 @@
                             </div>
                             <div class="polrx-theme-title-row">
                                 <span class="polrx-theme-title">{{ $themeMeta['name'] }}</span>
-                                <span class="polrx-theme-badge">使用中</span>
+                                <span class="polrx-theme-badge">{{ __('polr.admin.settings.active_badge') }}</span>
                             </div>
                             <div class="polrx-theme-desc">{{ $themeMeta['description'] }}</div>
                         </div>
                         @endforeach
                     </div>
                 </div>
+            </div>
 
-                <hr class="polrx-divider">
+            <div role="tabpanel" class="tab-pane" id="totp">
+                <h3>{{ __('polr.admin.totp.title') }}</h3>
+                <p class="polrx-muted" style="margin-bottom: 18px;">{{ __('polr.admin.totp.subtitle') }}</p>
 
-                <h3>登入兩步驟驗證（TOTP）</h3>
                 @if ($totp_enabled)
                     <div class="well polrx-subcard">
-                        <p style="margin-bottom: 8px;"><strong>目前狀態：</strong> <span class="polrx-status-pill">已啟用</span></p>
-                        <p class="polrx-muted" style="margin-bottom: 18px;">之後登入時，輸入帳號密碼後還需要再輸入一次驗證器的 6 碼驗證碼。</p>
+                        <p style="margin-bottom: 8px;"><strong>{{ __('polr.admin.totp.status_label') }}</strong> <span class="polrx-status-pill">{{ __('polr.admin.totp.enabled_badge') }}</span></p>
+                        <p class="polrx-muted" style="margin-bottom: 18px;">{{ __('polr.admin.totp.enabled_desc') }}</p>
                         <form action='/admin/action/totp/disable' method='POST' class="polrx-form-narrow">
-                            <label class="polrx-field-label">目前密碼</label>
+                            <label class="polrx-field-label">{{ __('polr.admin.settings.current_password') }}</label>
                             <input class="form-control password-box" type='password' name='disable_totp_current_password' />
                             <input type="hidden" name='_token' value='{{csrf_token()}}' />
-                            <input type='submit' class='btn btn-danger' style="margin-top: 14px;" value='停用 2FA'/>
+                            <input type='submit' class='btn btn-danger' style="margin-top: 14px;" value='{{ __('polr.admin.totp.disable_btn') }}'/>
                         </form>
                     </div>
                 @elseif ($pending_totp_secret)
                     <div class="well polrx-subcard">
-                        <p style="margin-bottom: 14px;">使用 Google Authenticator、1Password、Authy 或其他支援 TOTP 的驗證器掃描下方 QR code。</p>
+                        <p style="margin-bottom: 14px;">{{ __('polr.admin.totp.scan_prompt') }}</p>
                         <div style="display:flex; flex-wrap:wrap; gap: 24px; align-items:flex-start; margin-bottom: 16px;">
                             <div>
                                 <div id="totp-qrcode" class="polrx-qr-box"></div>
                             </div>
                             <div style="flex:1; min-width: 260px;">
-                                <p style="margin-bottom: 10px;"><strong>帳號標籤：</strong> {{$totp_label}}</p>
-                                <p style="margin-bottom: 10px;"><strong>手動輸入金鑰：</strong></p>
+                                <p style="margin-bottom: 10px;"><strong>{{ __('polr.admin.totp.account_label') }}</strong> {{$totp_label}}</p>
+                                <p style="margin-bottom: 10px;"><strong>{{ __('polr.admin.totp.manual_secret') }}</strong></p>
                                 <code class="polrx-code-block">{{$pending_totp_secret}}</code>
                             </div>
                         </div>
 
                         <form action='/admin/action/totp/confirm' method='POST' class="polrx-form-narrow">
-                            <label class="polrx-field-label">目前密碼</label>
+                            <label class="polrx-field-label">{{ __('polr.admin.settings.current_password') }}</label>
                             <input class="form-control password-box" type='password' name='totp_current_password' />
-                            <label class="polrx-field-label" style="margin-top: 12px;">驗證器上的 6 碼驗證碼</label>
+                            <label class="polrx-field-label" style="margin-top: 12px;">{{ __('polr.admin.totp.code_label') }}</label>
                             <input class="form-control password-box" type='text' inputmode='numeric' maxlength='6' name='totp_code' placeholder='123456' />
                             <input type="hidden" name='_token' value='{{csrf_token()}}' />
                             <div style="margin-top: 14px; display:flex; gap:10px; flex-wrap:wrap;">
-                                <input type='submit' class='btn btn-primary' value='確認啟用 2FA'/>
+                                <input type='submit' class='btn btn-primary' value='{{ __('polr.admin.totp.confirm_btn') }}'/>
                             </div>
                         </form>
 
                         <form action='/admin/action/totp/cancel' method='POST' style="margin-top: 10px;">
                             <input type="hidden" name='_token' value='{{csrf_token()}}' />
-                            <input type='submit' class='btn btn-default' value='取消綁定'/>
+                            <input type='submit' class='btn btn-default' value='{{ __('polr.admin.totp.cancel_btn') }}'/>
                         </form>
                     </div>
                 @else
                     <div class="well polrx-subcard">
-                        <p class="polrx-muted" style="margin-bottom: 14px;">啟用後，登入時除了帳號密碼，還需要再輸入驗證器 App 的 6 碼 TOTP 驗證碼。</p>
+                        <p style="margin-bottom: 8px;"><strong>{{ __('polr.admin.totp.status_label') }}</strong> <span class="polrx-status-pill is-muted">{{ __('polr.admin.totp.disabled_badge') }}</span></p>
+                        <p class="polrx-muted" style="margin-bottom: 16px;">{{ __('polr.admin.totp.disabled_desc') }}</p>
                         <form action='/admin/action/totp/start' method='POST'>
                             <input type="hidden" name='_token' value='{{csrf_token()}}' />
-                            <input type='submit' class='btn btn-primary' value='開始綁定 2FA'/>
+                            <input type='submit' class='btn btn-primary' value='{{ __('polr.admin.totp.start_btn') }}'/>
                         </form>
                     </div>
                 @endif
             </div>
 
+            <div role="tabpanel" class="tab-pane" id="language">
+                <h3>{{ __('polr.admin.language.title') }}</h3>
+                <p class="polrx-muted" style="margin-bottom: 16px;">{{ __('polr.admin.language.desc') }}</p>
+                <div class="polrx-theme-grid">
+                    @foreach ($available_locales as $locCode => $locMeta)
+                    <div class="polrx-theme-card polrx-locale-card {{ ($user_locale === $locCode) ? 'is-active' : '' }}"
+                         data-locale="{{ $locCode }}"
+                         role="button"
+                         tabindex="0"
+                         aria-pressed="{{ ($user_locale === $locCode) ? 'true' : 'false' }}">
+                        <div class="polrx-locale-header">
+                            <span class="polrx-locale-code-pill">{{ $locMeta['badge'] }}</span>
+                            <span class="polrx-theme-badge">{{ __('polr.admin.language.active_badge') }}</span>
+                        </div>
+                        <div class="polrx-theme-title-row" style="margin-top: 10px;">
+                            <span class="polrx-theme-title">{{ $locMeta['name'] }}</span>
+                        </div>
+                        <div class="polrx-theme-desc">{{ $locMeta['subtitle'] }}</div>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+
             @if ($role == $admin_role)
             <div role="tabpanel" class="tab-pane" id="admin">
-                <h3>所有連結</h3>
+                <h3>{{ __('polr.admin.links.all_links') }}</h3>
                 @include('snippets.link_table', [
                     'table_id' => 'admin_links_table'
                 ])
 
-                <h3 class="users-heading">使用者</h3>
-                <a ng-click="state.showNewUserWell = !state.showNewUserWell" class="btn btn-primary btn-sm status-display">新增</a>
+                <h3 class="users-heading">{{ __('polr.admin.users.heading') }}</h3>
+                <a ng-click="state.showNewUserWell = !state.showNewUserWell" class="btn btn-primary btn-sm status-display">{{ __('polr.admin.users.add_btn') }}</a>
 
                 <div ng-if="state.showNewUserWell" class="new-user-fields well">
                     <table class="table">
                         <tr>
-                            <th>帳號</th>
-                            <th>密碼</th>
-                            <th>Email</th>
-                            <th>角色</th>
+                            <th>{{ __('polr.admin.users.username') }}</th>
+                            <th>{{ __('polr.admin.users.password') }}</th>
+                            <th>{{ __('polr.admin.users.email') }}</th>
+                            <th>{{ __('polr.admin.users.role') }}</th>
                             <th></th>
                         </tr>
                         <tr id="new-user-form">
@@ -161,7 +189,7 @@
                                 </select>
                             </td>
                             <td>
-                                <a ng-click="addNewUser($event)" class="btn btn-primary btn-sm status-display new-user-add">新增</a>
+                                <a ng-click="addNewUser($event)" class="btn btn-primary btn-sm status-display new-user-add">{{ __('polr.admin.users.add_btn') }}</a>
                             </td>
                         </tr>
                     </table>
@@ -176,33 +204,33 @@
 
             @if ($api_active == 1)
             <div role="tabpanel" class="tab-pane" id="developer">
-                <h3>開發者</h3>
+                <h3>{{ __('polr.admin.developer.title') }}</h3>
 
-                <p>這裡提供 API 金鑰與開發文件。</p>
+                <p>{{ __('polr.admin.developer.desc') }}</p>
                 <p>
-                    專案與文件：
+                    {{ __('polr.admin.developer.docs_label') }}
                     <a href='https://github.com/tommy1616/polrX' target='_blank' rel='noopener noreferrer'>https://github.com/tommy1616/polrX</a>
                 </p>
 
-                <h4>API 金鑰：</h4>
+                <h4>{{ __('polr.admin.developer.api_key_label') }}</h4>
                 <div class='row'>
                     <div class='col-md-8'>
                         <input class='form-control status-display' disabled type='text' value='{{$api_key}}'>
                     </div>
                     <div class='col-md-4'>
-                        <a href='#' ng-click="generateNewAPIKey($event, '{{$user_id}}', true)" id='api-reset-key' class='btn btn-danger'>重設</a>
+                        <a href='#' ng-click="generateNewAPIKey($event, '{{$user_id}}', true)" id='api-reset-key' class='btn btn-danger'>{{ __('polr.admin.developer.reset_btn') }}</a>
                     </div>
                 </div>
 
-                <h4>API 額度：</h4>
+                <h4>{{ __('polr.admin.developer.api_quota_label') }}</h4>
                 <h2 class='api-quota'>
                     @if ($api_quota == -1)
-                        無限制
+                        {{ __('polr.admin.developer.unlimited') }}
                     @else
                         <code>{{$api_quota}}</code>
                     @endif
                 </h2>
-                <span>每分鐘請求次數</span>
+                <span>{{ __('polr.admin.developer.requests_per_min') }}</span>
             </div>
             @endif
         </div>

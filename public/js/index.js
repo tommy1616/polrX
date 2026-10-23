@@ -1,4 +1,5 @@
 $(function() {
+    var i18n = (window.POLR_I18N && window.POLR_I18N.index) ? window.POLR_I18N.index : {};
     var optionsButton = $('#show-link-options');
     $('#options').hide();
     var slide = 0;
@@ -21,21 +22,21 @@ $(function() {
             },
             dataType: "html"
         });
-        $('#link-availability-status').html('<span><i class="fa fa-spinner"></i> 檢查中</span>');
+        $('#link-availability-status').html('<span><i class="fa fa-spinner"></i> ' + (i18n.checking || 'Checking...') + '</span>');
         request.done(function(msg) {
             if (msg == 'unavailable') {
-                $('#link-availability-status').html(' <span style="color:red"><i class="fa fa-ban"></i> 已被使用</span>');
+                $('#link-availability-status').html(' <span style="color:red"><i class="fa fa-ban"></i> ' + (i18n.unavailable || 'Already in use') + '</span>');
             } else if (msg == 'available') {
-                $('#link-availability-status').html('<span style="color:green"><i class="fa fa-check"></i> 可使用</span>');
+                $('#link-availability-status').html('<span style="color:green"><i class="fa fa-check"></i> ' + (i18n.available || 'Available') + '</span>');
             } else if (msg == 'invalid') {
-                $('#link-availability-status').html('<span style="color:orange"><i class="fa fa-exclamation-triangle"></i> 自訂短碼格式不正確</span>');
+                $('#link-availability-status').html('<span style="color:orange"><i class="fa fa-exclamation-triangle"></i> ' + (i18n.invalid_ending || 'Invalid format') + '</span>');
             } else {
-                $('#link-availability-status').html(' <span style="color:red"><i class="fa fa-exclamation-circle"></i> 發生錯誤，請再試一次</span>' + msg);
+                $('#link-availability-status').html(' <span style="color:red"><i class="fa fa-exclamation-circle"></i> ' + (i18n.error_retry || 'Error') + '</span>');
             }
         });
 
         request.fail(function(jqXHR, textStatus) {
-            $('#link-availability-status').html(' <span style="color:red"><i class="fa fa-exclamation-circle"></i> 發生錯誤，請再試一次</span>' + textstatus);
+            $('#link-availability-status').html(' <span style="color:red"><i class="fa fa-exclamation-circle"></i> ' + (i18n.error_retry || 'Error') + '</span>');
         });
     });
     min = 1;
@@ -54,10 +55,10 @@ $(function() {
     function changeTips(tcase) {
         switch (tcase) {
             case 1:
-                setTip('建立帳號後，就能集中管理與追蹤你的短網址');
+                setTip(i18n.tip_1 || 'Create an account to manage and track your links.');
                 break;
             case 2:
-                setTip('你知道嗎？點一下「連結選項」就能自訂短網址尾碼');
+                setTip(i18n.tip_2 || 'Click "Link Options" to customize your short link ending.');
                 i = 1;
                 break;
         }
@@ -65,10 +66,8 @@ $(function() {
 });
 
 $(function() {
-    // Setup drop down menu
     $('.dropdown-toggle').dropdown();
 
-    // Fix input element click problem
     $('.dropdown input, .dropdown label').click(function(e) {
         e.stopPropagation();
     });
@@ -89,6 +88,5 @@ $(function() {
         }
 
         $(this).find('.btn').toggleClass('btn-default');
-
     });
 });

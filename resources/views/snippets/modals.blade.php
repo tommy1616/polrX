@@ -13,7 +13,7 @@
                     @{{{body}}}
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">關閉</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">{{ __('polr.admin.modals.close') }}</button>
                 </div>
             </div>
         </div>

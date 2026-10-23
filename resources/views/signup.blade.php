@@ -5,40 +5,41 @@
 @endsection
 
 @section('content')
-<div class='col-md-6'>
-    <h2 class='title'>Register</h2>
+<div class="polrx-page-card">
+    <div class="row">
+        <div class='col-md-6'>
+            <h2 class='title' style="margin-top:0; margin-bottom:20px;">{{ __('polr.auth.register_title') }}</h2>
 
-    <form action='/signup' method='POST'>
-        Username: <input type='text' name='username' class='form-control form-field' placeholder='Username' />
-        Password: <input type='password' name='password' class='form-control form-field' placeholder='Password' />
-        Email: <input type='email' name='email' class='form-control form-field' placeholder='Email' />
+            <form action='/signup' method='POST'>
+                <label class="polrx-field-label">{{ __('polr.auth.username') }}</label>
+                <input type='text' name='username' class='form-control form-field' placeholder='{{ __('polr.auth.username') }}' />
+                <label class="polrx-field-label">{{ __('polr.auth.password') }}</label>
+                <input type='password' name='password' class='form-control form-field' placeholder='{{ __('polr.auth.password') }}' />
+                <label class="polrx-field-label">{{ __('polr.auth.email') }}</label>
+                <input type='email' name='email' class='form-control form-field' placeholder='{{ __('polr.auth.email') }}' />
 
-        @if (env('POLR_ACCT_CREATION_RECAPTCHA'))
-        <div class="g-recaptcha" data-sitekey="{{env('POLR_RECAPTCHA_SITE_KEY')}}"></div>
-        @endif
+                @if (env('POLR_ACCT_CREATION_RECAPTCHA'))
+                <div class="g-recaptcha" data-sitekey="{{env('POLR_RECAPTCHA_SITE_KEY')}}"></div>
+                @endif
 
-        <input type="hidden" name='_token' value='{{csrf_token()}}' />
-        <input type="submit" class="btn btn-default btn-success" value="Register"/>
-        <p class='login-prompt'>
-            <small>Already have an account? <a href='{{route('login')}}'>Login</a></small>
-        </p>
-    </form>
-</div>
-<div class='col-md-6 hidden-xs hidden-sm'>
-    <div class='right-col-one'>
-        <h4>Username</h4>
-        <p>The username you will use to login to {{env('APP_NAME')}}.</p>
-    </p>
-    <div class='right-col-next'>
-        <div class='right-col'>
-            <h4>Password</h4>
-            <p>The secure password you will use to login to {{env('APP_NAME')}}.</p>
-        </p>
+                <input type="hidden" name='_token' value='{{csrf_token()}}' />
+                <input type="submit" class="btn btn-primary" value="{{ __('polr.auth.register_btn') }}"/>
+                <p class='login-prompt' style="margin-top: 14px;">
+                    <small>{{ __('polr.auth.already_have_account') }} <a href='{{route('login')}}'>{{ __('polr.auth.login_btn') }}</a></small>
+                </p>
+            </form>
+        </div>
+        <div class='col-md-6 hidden-xs hidden-sm'>
+            <div class="well polrx-subcard">
+                <h4 style="margin-top:0;">{{ __('polr.auth.username_help_title') }}</h4>
+                <p class="polrx-muted">{{ __('polr.auth.username_help_desc', ['app' => env('APP_NAME')]) }}</p>
+                <h4>{{ __('polr.auth.password_help_title') }}</h4>
+                <p class="polrx-muted">{{ __('polr.auth.password_help_desc', ['app' => env('APP_NAME')]) }}</p>
+                <h4>{{ __('polr.auth.email_help_title') }}</h4>
+                <p class="polrx-muted" style="margin-bottom:0;">{{ __('polr.auth.email_help_desc') }}</p>
+            </div>
+        </div>
     </div>
-    <div class='right-col-next'>
-        <h4>Email</h4>
-        <p>The email you will use to verify your account or to recover your account.</p>
-    </p>
 </div>
 @endsection
 

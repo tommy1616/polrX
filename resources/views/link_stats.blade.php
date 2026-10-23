@@ -10,23 +10,19 @@
 @section('content')
 <div ng-controller="StatsCtrl" class="ng-root">
     <div class="stats-header bottom-padding">
-        <h3>Stats</h3>
+        <h3>{{ __('polr.stats.title') }}</h3>
         <div class="row">
             <div class="col-md-3 col-md-offset-3 link-meta">
                 <p>
-                    <b>Short Link: </b>
+                    <b>{{ __('polr.stats.short_link') }} </b>
                     <a target="_blank" href="{{ env('APP_PROTOCOL') }}/{{ env('APP_ADDRESS') }}/{{ $link->short_url }}">
                         {{ env('APP_ADDRESS') }}/{{ $link->short_url }}
                     </a>
                 </p>
                 <p>
-                    <b>Long Link: </b>
+                    <b>{{ __('polr.stats.long_link') }} </b>
                     <a target="_blank" href="{{ $link->long_url }}">{{ str_limit($link->long_url, 50) }}</a>
                 </p>
-                {{-- <p>
-                    <em>Tip: Clear the right date bound (bottom box) to set it to the current date and time. New
-                    clicks will not show unless the right date bound is set to the current time.</em>
-                </p> --}}
             </div>
             <div class="col-md-3">
                 <form action="" method="GET">
@@ -47,7 +43,7 @@
                         </div>
                     </div>
 
-                    <input type="submit" value="Refresh" class="form-control">
+                    <input type="submit" value="{{ __('polr.stats.refresh') }}" class="form-control">
                 </form>
             </div>
         </div>
@@ -55,27 +51,27 @@
 
     <div class="row bottom-padding">
         <div class="col-md-8">
-            <h4>Traffic over Time</h4> (total: {{ $link->clicks }})
+            <h4>{{ __('polr.stats.traffic_over_time') }}</h4> ({{ __('polr.stats.total', ['count' => $link->clicks]) }})
             <canvas id="dayChart"></canvas>
         </div>
         <div class="col-md-4">
-            <h4>Traffic sources</h4>
+            <h4>{{ __('polr.stats.traffic_sources') }}</h4>
             <canvas id="refererChart"></canvas>
         </div>
     </div>
 
     <div class="row">
         <div class="col-md-6">
-            <h4>Map</h4>
+            <h4>{{ __('polr.stats.map') }}</h4>
             <div id="mapChart"></div>
         </div>
         <div class="col-md-6">
-            <h4>Referers</h4>
+            <h4>{{ __('polr.stats.referers') }}</h4>
             <table class="table table-hover" id="refererTable">
                 <thead>
                     <tr>
-                        <th>Host</th>
-                        <th>Clicks</th>
+                        <th>{{ __('polr.stats.host') }}</th>
+                        <th>{{ __('polr.stats.clicks') }}</th>
                     </tr>
                 </thead>
                 <tbody>

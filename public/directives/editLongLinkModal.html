@@ -5,14 +5,14 @@
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
-                <h4 class="modal-title">Long URL</h4>
+                <h4 class="modal-title">{{ modalI18n.long_url_title || 'Long URL' }}</h4>
             </div>
             <div class="modal-body">
-                <input type="url" value="{{ oldLongLink }}" placeholder="Long URL..." class="form-control" />
+                <input type="url" value="{{ oldLongLink }}" placeholder="https://..." class="form-control" />
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal" ng-click="saveChanges()">Save Changes</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal" ng-click="saveChanges()">{{ modalI18n.save_changes || 'Save Changes' }}</button>
             </div>
-        </div> <!-- /.modal-content -->
-    </div> <!-- /.modal-dialog -->
-</div> <!-- /.modal -->
+        </div>
+    </div>
+</div>

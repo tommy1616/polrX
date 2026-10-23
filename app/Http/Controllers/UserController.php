@@ -19,7 +19,7 @@ class UserController extends Controller {
 
     public function displayTotpPage(Request $request) {
         if (!$request->session()->get('pending_2fa_user_id')) {
-            return redirect(route('login'))->with('error', '請先登入帳號密碼。');
+            return redirect(route('login'))->with('error', __('polr.messages.login_first'));
         }
 
         return view('login_totp', [
@@ -36,8 +36,12 @@ class UserController extends Controller {
     }
 
     public function performLogoutUser(Request $request) {
+        $locale = $request->session()->get('locale');
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+        if ($locale) {
+            $request->session()->put('locale', $locale);
+        }
         return redirect()->route('index');
     }
 
@@ -66,18 +70,21 @@ class UserController extends Controller {
             $request->session()->put('username', $username);
             $request->session()->put('role', $role);
             $request->session()->put('theme', ThemeHelper::normalize($user ? $user->theme : 'default'));
+            if ($user && !empty($user->locale)) {
+                $request->session()->put('locale', \App\Helpers\LocaleHelper::normalize($user->locale));
+            }
 
             return redirect()->route('index');
         }
         else {
-            return redirect('login')->with('error', '帳號或密碼錯誤，或帳號尚未啟用。');
+            return redirect('login')->with('error', __('polr.messages.login_failed'));
         }
     }
 
     public function performTotpLogin(Request $request) {
         $pendingUserId = $request->session()->get('pending_2fa_user_id');
         if (!$pendingUserId) {
-            return redirect(route('login'))->with('error', '登入驗證已失效，請重新登入。');
+            return redirect(route('login'))->with('error', __('polr.messages.totp_session_expired'));
         }
 
         $user = UserHelper::getUserById($pendingUserId, true);
@@ -85,12 +92,12 @@ class UserController extends Controller {
             $request->session()->forget('pending_2fa_user_id');
             $request->session()->forget('pending_2fa_username');
             $request->session()->forget('pending_2fa_role');
-            return redirect(route('login'))->with('error', '2FA 狀態異常，請重新登入。');
+            return redirect(route('login'))->with('error', __('polr.messages.totp_state_error'));
         }
 
         $code = $request->input('totp_code');
         if (!TotpHelper::verifyCode($user->totp_secret, $code)) {
-            return redirect()->route('login_totp')->with('error', '驗證碼錯誤，請再試一次。');
+            return redirect()->route('login_totp')->with('error', __('polr.messages.totp_login_code_wrong'));
         }
 
         $verifiedUser = $request->session()->get('pending_2fa_username');
@@ -99,6 +106,9 @@ class UserController extends Controller {
         $request->session()->put('username', $verifiedUser);
         $request->session()->put('role', $verifiedRole);
         $request->session()->put('theme', ThemeHelper::normalize($user->theme));
+        if (!empty($user->locale)) {
+            $request->session()->put('locale', \App\Helpers\LocaleHelper::normalize($user->locale));
+        }
         $request->session()->forget('pending_2fa_user_id');
         $request->session()->forget('pending_2fa_username');
         $request->session()->forget('pending_2fa_role');

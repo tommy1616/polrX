@@ -37,6 +37,8 @@ Route::post('/admin/action/totp/confirm', [AdminController::class, 'confirmTotpS
 Route::post('/admin/action/totp/cancel', [AdminController::class, 'cancelTotpSetup'])->name('totp_cancel');
 Route::post('/admin/action/totp/disable', [AdminController::class, 'disableTotp'])->name('totp_disable');
 Route::post('/admin/action/change_theme', [AdminController::class, 'changeTheme'])->name('change_theme');
+Route::post('/admin/action/change_locale', [AdminController::class, 'changeLocale'])->name('admin_change_locale');
+Route::post('/locale', [AdminController::class, 'changeLocale'])->name('change_locale');
 
 Route::get('/setup', [SetupController::class, 'displaySetupPage'])->name('setup');
 Route::post('/setup', [SetupController::class, 'performSetup'])->name('psetup');

@@ -2,18 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\LocaleHelper;
 use App\Helpers\ThemeHelper;
 use App\Helpers\TotpHelper;
 use App\Helpers\UserHelper;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 
 class AdminController extends Controller
 {
     public function displayAdminPage(Request $request)
     {
         if (! $this->isLoggedIn()) {
-            return redirect(route('login'))->with('error', '請先登入以進入管理後台。');
+            return redirect(route('login'))->with('error', __('polr.messages.login_required_admin'));
         }
 
         $username = session('username');
@@ -22,11 +25,15 @@ class AdminController extends Controller
         $user = UserHelper::getUserByUsername($username);
 
         if (! $user) {
-            return redirect(route('index'))->with('error', '帳號無效或已停用。');
+            return redirect(route('index'))->with('error', __('polr.messages.account_invalid'));
         }
 
         $normalizedTheme = ThemeHelper::normalize($user->theme);
         $request->session()->put('theme', $normalizedTheme);
+
+        $normalizedLocale = LocaleHelper::normalize($request->session()->get('locale') ?: ($user->locale ?? null));
+        $request->session()->put('locale', $normalizedLocale);
+        App::setLocale($normalizedLocale);
 
         $pendingTotpSecret = $request->session()->get('pending_totp_secret');
         $totpLabel = $username.'@'.env('APP_ADDRESS');
@@ -46,6 +53,8 @@ class AdminController extends Controller
             'totp_label' => $totpLabel,
             'user_theme' => $normalizedTheme,
             'available_themes' => ThemeHelper::all(),
+            'user_locale' => $normalizedLocale,
+            'available_locales' => LocaleHelper::all(),
         ]);
     }
 
@@ -59,20 +68,20 @@ class AdminController extends Controller
         $new_password = (string) $request->input('new_password', '');
 
         if (trim($new_password) === '') {
-            return redirect(route('admin').'#settings')->with('error', '新密碼不可為空。');
+            return redirect(route('admin').'#settings')->with('error', __('polr.messages.password_empty'));
         }
 
         $username = session('username');
 
         if (UserHelper::checkCredentials($username, $old_password) == false) {
-            return redirect(route('admin').'#settings')->with('error', '目前密碼錯誤，請再試一次。');
+            return redirect(route('admin').'#settings')->with('error', __('polr.messages.current_password_wrong'));
         }
 
         $user = UserHelper::getUserByUsername($username);
         $user->password = Hash::make($new_password);
         $user->save();
 
-        return redirect(route('admin').'#settings')->with('success', '密碼已成功更新。');
+        return redirect(route('admin').'#settings')->with('success', __('polr.messages.password_updated'));
     }
 
     public function startTotpSetup(Request $request)
@@ -81,12 +90,12 @@ class AdminController extends Controller
         $user = UserHelper::getUserByUsername(session('username'));
 
         if (! $user) {
-            return redirect(route('admin'))->with('error', '使用者不存在。');
+            return redirect(route('admin').'#totp')->with('error', __('polr.messages.user_not_found'));
         }
 
         $request->session()->put('pending_totp_secret', TotpHelper::generateSecret());
 
-        return redirect(route('admin').'#settings')->with('success', '請使用驗證器掃描 QR code，並輸入 6 碼驗證碼完成綁定。');
+        return redirect(route('admin').'#totp')->with('success', __('polr.messages.totp_scan_prompt'));
     }
 
     public function confirmTotpSetup(Request $request)
@@ -99,15 +108,15 @@ class AdminController extends Controller
         $totpCode = $request->input('totp_code');
 
         if (! $user || ! $pendingSecret) {
-            return redirect(route('admin').'#settings')->with('error', '找不到待綁定的 2FA，請重新開始。');
+            return redirect(route('admin').'#totp')->with('error', __('polr.messages.totp_no_pending'));
         }
 
         if (UserHelper::checkCredentials($username, $currentPassword) == false) {
-            return redirect(route('admin').'#settings')->with('error', '目前密碼錯誤，無法啟用 2FA。');
+            return redirect(route('admin').'#totp')->with('error', __('polr.messages.totp_password_wrong'));
         }
 
         if (! TotpHelper::verifyCode($pendingSecret, $totpCode)) {
-            return redirect(route('admin').'#settings')->with('error', '驗證碼錯誤，請確認手機上的 6 碼代碼。');
+            return redirect(route('admin').'#totp')->with('error', __('polr.messages.totp_code_wrong'));
         }
 
         $user->totp_secret = $pendingSecret;
@@ -116,7 +125,7 @@ class AdminController extends Controller
 
         $request->session()->forget('pending_totp_secret');
 
-        return redirect(route('admin').'#settings')->with('success', '兩步驟驗證已啟用。');
+        return redirect(route('admin').'#totp')->with('success', __('polr.messages.totp_enabled'));
     }
 
     public function cancelTotpSetup(Request $request)
@@ -124,7 +133,7 @@ class AdminController extends Controller
         self::ensureLoggedIn();
         $request->session()->forget('pending_totp_secret');
 
-        return redirect(route('admin').'#settings')->with('info', '已取消 2FA 綁定流程。');
+        return redirect(route('admin').'#totp')->with('info', __('polr.messages.totp_cancelled'));
     }
 
     public function disableTotp(Request $request)
@@ -135,11 +144,11 @@ class AdminController extends Controller
         $user = UserHelper::getUserByUsername($username);
 
         if (! $user || ! $user->totp_enabled) {
-            return redirect(route('admin').'#settings')->with('error', '目前帳號尚未啟用 2FA。');
+            return redirect(route('admin').'#totp')->with('error', __('polr.messages.totp_not_enabled'));
         }
 
         if (UserHelper::checkCredentials($username, $currentPassword) == false) {
-            return redirect(route('admin').'#settings')->with('error', '目前密碼錯誤，無法停用 2FA。');
+            return redirect(route('admin').'#totp')->with('error', __('polr.messages.totp_disable_password_wrong'));
         }
 
         $user->totp_enabled = 0;
@@ -147,35 +156,76 @@ class AdminController extends Controller
         $user->save();
         $request->session()->forget('pending_totp_secret');
 
-        return redirect(route('admin').'#settings')->with('success', '兩步驟驗證已停用。');
+        return redirect(route('admin').'#totp')->with('success', __('polr.messages.totp_disabled'));
     }
 
     public function changeTheme(Request $request)
     {
         if (! $this->isLoggedIn()) {
-            return response()->json(['success' => false, 'message' => '未登入'], 401);
+            return response()->json(['success' => false, 'message' => __('polr.messages.unauthenticated')], 401);
         }
 
         $username = session('username');
         $theme = (string) $request->input('theme', '');
 
         if (! ThemeHelper::isValid($theme)) {
-            return response()->json(['success' => false, 'message' => '無效的主題選項'], 400);
+            return response()->json(['success' => false, 'message' => __('polr.messages.invalid_theme')], 400);
         }
 
         $user = UserHelper::getUserByUsername($username);
         if (! $user) {
-            return response()->json(['success' => false, 'message' => '使用者不存在'], 404);
+            return response()->json(['success' => false, 'message' => __('polr.messages.user_not_found')], 404);
         }
 
         $user->theme = $theme;
         $user->save();
         $request->session()->put('theme', $theme);
 
+        $themes = ThemeHelper::all();
+
         return response()->json([
             'success' => true,
-            'message' => '主題已更新為「'.ThemeHelper::THEMES[$theme]['name'].'」',
+            'message' => __('polr.messages.theme_updated', ['theme' => $themes[$theme]['name']]),
             'theme' => $theme,
         ]);
+    }
+
+    public function changeLocale(Request $request)
+    {
+        $locale = (string) $request->input('locale', '');
+
+        if (! LocaleHelper::isValid($locale)) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => __('polr.messages.invalid_locale')], 400);
+            }
+
+            return redirect()->back()->with('error', __('polr.messages.invalid_locale'));
+        }
+
+        $request->session()->put('locale', $locale);
+        App::setLocale($locale);
+
+        if ($this->isLoggedIn()) {
+            $user = UserHelper::getUserByUsername(session('username'));
+            if ($user && Schema::hasColumn('users', 'locale')) {
+                $user->locale = $locale;
+                $user->save();
+            }
+        }
+
+        $localeName = LocaleHelper::LOCALES[$locale]['name'];
+        $cookie = cookie('polrx_locale', $locale, 60 * 24 * 365);
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => __('polr.messages.locale_updated', ['locale' => $localeName]),
+                'locale' => $locale,
+            ])->withCookie($cookie);
+        }
+
+        return redirect()->back()
+            ->with('success', __('polr.messages.locale_updated', ['locale' => $localeName]))
+            ->withCookie($cookie);
     }
 }

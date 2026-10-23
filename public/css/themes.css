@@ -384,6 +384,31 @@ hr {
     color: var(--polrx-primary);
 }
 
+.polrx-status-pill.is-muted {
+    background-color: var(--polrx-surface-hover);
+    color: var(--polrx-text-muted);
+}
+
+.polrx-locale-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.polrx-locale-code-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 32px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    background-color: var(--polrx-primary-soft);
+    color: var(--polrx-primary);
+}
+
 .polrx-qr-box {
     width: 188px;
     min-height: 188px;

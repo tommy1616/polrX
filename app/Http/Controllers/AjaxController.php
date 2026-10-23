@@ -6,6 +6,8 @@ use App\Helpers\LinkHelper;
 use App\Helpers\CryptoHelper;
 use App\Helpers\UserHelper;
 use App\Models\User;
+use App\Models\Link;
+use App\Models\Click;
 use App\Factories\UserFactory;
 
 class AjaxController extends Controller {

@@ -1,28 +1,62 @@
 <?php
+
 namespace App\Helpers;
+
 use App\Models\Click;
 use App\Models\Link;
+use GeoIp2\Database\Reader;
 use Illuminate\Http\Request;
 
-class ClickHelper {
-    static private function getCountry($ip) {
-        $country_iso = geoip()->getLocation($ip)->iso_code;
-        return $country_iso;
+class ClickHelper
+{
+    private static function getCountry(?string $ip): ?string
+    {
+        if (! $ip) {
+            return null;
+        }
+
+        if (function_exists('geoip')) {
+            try {
+                return geoip()->getLocation($ip)->iso_code;
+            } catch (\Throwable) {
+                return null;
+            }
+        }
+
+        $candidates = [
+            storage_path('app/geoip.mmdb'),
+            storage_path('geoip/GeoLite2-Country.mmdb'),
+            storage_path('geoip/GeoLite2-City.mmdb'),
+            '/usr/share/GeoIP/GeoLite2-Country.mmdb',
+            '/usr/share/GeoIP/GeoLite2-City.mmdb',
+        ];
+
+        foreach ($candidates as $dbPath) {
+            if (is_readable($dbPath)) {
+                try {
+                    $reader = new Reader($dbPath);
+
+                    return $reader->country($ip)->country->isoCode;
+                } catch (\Throwable) {
+                    return null;
+                }
+            }
+        }
+
+        return null;
     }
 
-    static private function getHost($url) {
-        // Return host given URL; NULL if host is
-        // not found.
-        return parse_url($url, PHP_URL_HOST);
+    private static function getHost(?string $url): ?string
+    {
+        if (! $url) {
+            return null;
+        }
+
+        return parse_url($url, PHP_URL_HOST) ?: null;
     }
 
-    static public function recordClick(Link $link, Request $request) {
-        /**
-         * Given a Link model instance and Request object, process post click operations.
-         * @param Link model instance $link
-         * @return boolean
-         */
-
+    public static function recordClick(Link $link, Request $request): bool
+    {
         $ip = $request->ip();
         $referer = $request->server('HTTP_REFERER');
 
@@ -31,7 +65,7 @@ class ClickHelper {
         $click->ip = $ip;
         $click->country = self::getCountry($ip);
         $click->referer = $referer;
-        $click->referer_host = ClickHelper::getHost($referer);
+        $click->referer_host = self::getHost($referer);
         $click->user_agent = $request->server('HTTP_USER_AGENT');
         $click->save();
 

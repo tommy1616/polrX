@@ -22,9 +22,9 @@ polr.directive('editLongLinkModal', function () {
                     'link_ending': $scope.linkEnding,
                     'new_long_url': $element.find('input').val()
                 }, function(data) {
-                    toastr.success('The link was updated.', 'Success')
+                    toastr.success('短網址已更新。', '成功')
                 }, function(err) {
-                    toastr.error('The new URL format is not valid.', 'Error');
+                    toastr.error('新的網址格式不正確。', '錯誤');
                 });
             };
 
@@ -77,7 +77,7 @@ polr.directive('editUserApiInfoModal', function () {
                     'user_id': $scope.userId,
                     'new_quota': parseInt($scope.apiQuota)
                 }, function(next_action) {
-                    toastr.success("Quota successfully changed.", "Success");
+                    toastr.success("API 額度已更新。", "成功");
                 });
             };
 
@@ -124,6 +124,20 @@ polr.controller('AdminCtrl', function($scope, $compile, $timeout) {
             'autoWidth': false,
             'processing': true,
             'serverSide': true,
+            'language': {
+                'sProcessing': '處理中...',
+                'sLengthMenu': '顯示 _MENU_ 筆',
+                'sZeroRecords': '找不到符合的資料',
+                'sInfo': '顯示第 _START_ 到 _END_ 筆，共 _TOTAL_ 筆',
+                'sInfoEmpty': '顯示 0 到 0 筆，共 0 筆',
+                'sInfoFiltered': '(從 _MAX_ 筆資料中篩選)',
+                'sSearch': '搜尋:',
+                'sLoadingRecords': '載入中...',
+                'oPaginate': {
+                    'sPrevious': '上一頁',
+                    'sNext': '下一頁'
+                }
+            },
 
             'drawCallback': function () {
                 // Compile Angular bindings on each draw
@@ -200,7 +214,7 @@ polr.controller('AdminCtrl', function($scope, $compile, $timeout) {
         apiCall('admin/toggle_user_active', {
             'user_id': user_id,
         }, function(new_status) {
-            var text = (new_status == 1) ? 'Active' : 'Inactive';
+            var text = (new_status == 1) ? '已啟用' : '已停用';
             el.text(text);
             if (el.hasClass('btn-success')) {
                 el.removeClass('btn-success').addClass('btn-danger');
@@ -247,7 +261,7 @@ polr.controller('AdminCtrl', function($scope, $compile, $timeout) {
         // Allow admins to add new users
 
         if (!$scope.checkNewUserFields()) {
-            toastr.error("Fields cannot be empty.", "Error");
+            toastr.error("欄位不可為空。", "錯誤");
             return false;
         }
 
@@ -257,23 +271,23 @@ polr.controller('AdminCtrl', function($scope, $compile, $timeout) {
             'user_email': $scope.newUserParams.userEmail,
             'user_role': $scope.newUserParams.userRole,
         }, function(result) {
-            toastr.success("User " + $scope.newUserParams.username + " successfully created.", "Success");
+            toastr.success("使用者 " + $scope.newUserParams.username + " 已建立。", "成功");
             $('#new-user-form').clearForm();
             $scope.datatables['admin_users_table'].ajax.reload();
         }, function () {
-            toastr.error("An error occured while creating the user.", "Error");
+            toastr.error("建立使用者時發生錯誤。", "錯誤");
         });
     }
 
     // Delete user
     $scope.deleteUser = function($event, user_id) {
-        var delete_user_confirm = window.confirm('Are you sure you would like to delete this user?');
+        var delete_user_confirm = window.confirm('確定要刪除這個使用者嗎？');
 
         if (delete_user_confirm) {
             apiCall('admin/delete_user', {
                 'user_id': user_id,
             }, function(new_status) {
-                toastr.success('User successfully deleted.', 'Success');
+                toastr.success('使用者已刪除。', '成功');
                 $scope.reloadUserTables();
             });
         }
@@ -284,7 +298,7 @@ polr.controller('AdminCtrl', function($scope, $compile, $timeout) {
             'user_id': user_id,
             'role': role,
         }, function(result) {
-            toastr.success("User role successfully changed.", "Success");
+            toastr.success("使用者角色已更新。", "成功");
         });
     };
 
@@ -310,13 +324,13 @@ polr.controller('AdminCtrl', function($scope, $compile, $timeout) {
 
     // Delete link
     $scope.deleteLink = function($event, link_ending) {
-        var delete_link_confirm = window.confirm('Are you sure you would like to delete this link?');
+        var delete_link_confirm = window.confirm('確定要刪除這個短網址嗎？');
 
         if (delete_link_confirm) {
             apiCall('admin/delete_link', {
                 'link_ending': link_ending,
             }, function(new_status) {
-                toastr.success('Link successfully deleted.', 'Success');
+                toastr.success('短網址已刪除。', '成功');
                 $scope.reloadLinkTables();
             });
         }

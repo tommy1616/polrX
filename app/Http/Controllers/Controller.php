@@ -1,52 +1,52 @@
 <?php
+
 namespace App\Http\Controllers;
 
-use Laravel\Lumen\Routing\Controller as BaseController;
-use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
+use Illuminate\Foundation\Validation\ValidatesRequests;
+use Illuminate\Routing\Controller as BaseController;
 
+class Controller extends BaseController
+{
+    use ValidatesRequests;
 
-class Controller extends BaseController {
-    protected static function currIsAdmin() {
-        $role = session('role');
-        if ($role == 'admin') {
-            return true;
-        }
-        else {
-            return false;
-        }
+    protected static function currIsAdmin(): bool
+    {
+        return session('role') == 'admin';
     }
 
-    protected static function isLoggedIn() {
+    protected static function isLoggedIn(): bool
+    {
         $username = session('username');
-        if (!isset($username)) {
-            return false;
-        }
-        else {
-            return true;
-        }
+
+        return isset($username);
     }
 
-    protected static function checkRequiredArgs($required_args=[]) {
-        foreach($required_args as $arg) {
-            if ($arg == NULL) {
+    protected static function checkRequiredArgs(array $required_args = []): bool
+    {
+        foreach ($required_args as $arg) {
+            if ($arg === null) {
                 return false;
             }
         }
+
         return true;
     }
 
-    protected static function ensureAdmin() {
-        if (!self::currIsAdmin()) {
+    protected static function ensureAdmin(): bool
+    {
+        if (! self::currIsAdmin()) {
             abort(401, 'User not admin.');
         }
+
         return true;
     }
 
-    protected static function ensureLoggedIn() {
-        if (!self::isLoggedIn()) {
-            abort (401, 'User must be authenticated.');
+    protected static function ensureLoggedIn(): bool
+    {
+        if (! self::isLoggedIn()) {
+            abort(401, 'User must be authenticated.');
         }
+
         return true;
     }
 }

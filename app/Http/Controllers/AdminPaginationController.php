@@ -1,7 +1,8 @@
 <?php
 namespace App\Http\Controllers;
 use Illuminate\Http\Request;
-use Yajra\Datatables\Facades\Datatables;
+use Illuminate\Support\Str;
+use App\Helpers\DataTablesHelper as DataTables;
 
 use App\Models\Link;
 use App\Models\User;
@@ -17,7 +18,7 @@ class AdminPaginationController extends Controller {
     /* Cell rendering functions */
 
     public function renderLongUrlCell($link) {
-        return '<a target="_blank" title="' . e($link->long_url) . '" href="'. e($link->long_url) .'">' . e(str_limit($link->long_url, 50)) . '</a>
+        return '<a target="_blank" title="' . e($link->long_url) . '" href="'. e($link->long_url) .'">' . e(Str::limit($link->long_url, 50)) . '</a>
             <a class="btn btn-primary btn-xs edit-long-link-btn" ng-click="editLongLink(\'' . e($link->short_url) . '\', \'' . e($link->long_url) . '\')"><i class="fa fa-edit edit-link-icon"></i></a>';
     }
 
@@ -39,7 +40,7 @@ class AdminPaginationController extends Controller {
             $btn_class = 'disabled';
         }
         return '<a ng-click="deleteUser($event, \''. $user->id .'\')" class="btn btn-sm btn-danger ' . $btn_class . '">
-            Delete
+            刪除
         </a>';
     }
 
@@ -47,7 +48,7 @@ class AdminPaginationController extends Controller {
         // Add "Delete" action button
         return '<a ng-click="deleteLink($event, \'' . e($link->short_url)  . '\')"
             class="btn btn-sm btn-warning delete-link">
-            Delete
+            刪除
         </a>';
     }
 
@@ -55,7 +56,7 @@ class AdminPaginationController extends Controller {
         // Add "API Info" action button
         return '<a class="activate-api-modal btn btn-sm btn-info"
             ng-click="openAPIModal($event, \'' . e($user->username) . '\', \'' . $user->api_key . '\', \'' . $user->api_active . '\', \'' . e($user->api_quota) . '\', \'' . $user->id . '\')">
-            API info
+            API 資訊
         </a>';
     }
 
@@ -67,11 +68,11 @@ class AdminPaginationController extends Controller {
         }
 
         if ($user->active) {
-            $active_text = 'Active';
+            $active_text = '已啟用';
             $btn_color_class = ' btn-success';
         }
         else {
-            $active_text = 'Inactive';
+            $active_text = '已停用';
             $btn_color_class = ' btn-danger';
         }
 
@@ -111,11 +112,11 @@ class AdminPaginationController extends Controller {
     public function renderToggleLinkActiveCell($link) {
         // Add "Disable/Enable" action buttons
         $btn_class = 'btn-danger';
-        $btn_text = 'Disable';
+        $btn_text = '停用';
 
         if ($link->is_disabled) {
             $btn_class = 'btn-success';
-            $btn_text = 'Enable';
+            $btn_text = '啟用';
         }
 
         return '<a ng-click="toggleLink($event, \'' . e($link->short_url) . '\')" class="btn btn-sm ' . $btn_class . '">
@@ -129,12 +130,12 @@ class AdminPaginationController extends Controller {
         self::ensureAdmin();
 
         $admin_users = User::select(['username', 'email', 'created_at', 'active', 'api_key', 'api_active', 'api_quota', 'role', 'id']);
-        return Datatables::of($admin_users)
-            ->addColumn('api_action', [$this, 'renderAdminApiActionCell'])
-            ->addColumn('toggle_active', [$this, 'renderToggleUserActiveCell'])
-            ->addColumn('change_role', [$this, 'renderChangeUserRoleCell'])
-            ->addColumn('delete', [$this, 'renderDeleteUserCell'])
-            ->escapeColumns(['username', 'email'])
+        return DataTables::of($admin_users)
+            ->addColumn('api_action', fn($user) => $this->renderAdminApiActionCell($user))
+            ->addColumn('toggle_active', fn($user) => $this->renderToggleUserActiveCell($user))
+            ->addColumn('change_role', fn($user) => $this->renderChangeUserRoleCell($user))
+            ->addColumn('delete', fn($user) => $this->renderDeleteUserCell($user))
+            ->rawColumns(['api_action', 'toggle_active', 'change_role', 'delete'])
             ->make(true);
     }
 
@@ -142,12 +143,12 @@ class AdminPaginationController extends Controller {
         self::ensureAdmin();
 
         $admin_links = Link::select(['short_url', 'long_url', 'clicks', 'created_at', 'creator', 'is_disabled']);
-        return Datatables::of($admin_links)
-            ->addColumn('disable', [$this, 'renderToggleLinkActiveCell'])
-            ->addColumn('delete', [$this, 'renderDeleteLinkCell'])
-            ->editColumn('clicks', [$this, 'renderClicksCell'])
-            ->editColumn('long_url', [$this, 'renderLongUrlCell'])
-            ->escapeColumns(['short_url', 'creator'])
+        return DataTables::of($admin_links)
+            ->addColumn('disable', fn($link) => $this->renderToggleLinkActiveCell($link))
+            ->addColumn('delete', fn($link) => $this->renderDeleteLinkCell($link))
+            ->editColumn('clicks', fn($link) => $this->renderClicksCell($link))
+            ->editColumn('long_url', fn($link) => $this->renderLongUrlCell($link))
+            ->rawColumns(['disable', 'delete', 'clicks', 'long_url'])
             ->make(true);
     }
 
@@ -158,10 +159,10 @@ class AdminPaginationController extends Controller {
         $user_links = Link::where('creator', $username)
             ->select(['id', 'short_url', 'long_url', 'clicks', 'created_at']);
 
-        return Datatables::of($user_links)
-            ->editColumn('clicks', [$this, 'renderClicksCell'])
-            ->editColumn('long_url', [$this, 'renderLongUrlCell'])
-            ->escapeColumns(['short_url'])
+        return DataTables::of($user_links)
+            ->editColumn('clicks', fn($link) => $this->renderClicksCell($link))
+            ->editColumn('long_url', fn($link) => $this->renderLongUrlCell($link))
+            ->rawColumns(['clicks', 'long_url'])
             ->make(true);
     }
 }

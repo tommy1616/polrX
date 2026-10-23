@@ -18,17 +18,17 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 -->
 
 <!DOCTYPE html>
-<html ng-app="polr">
+<html ng-app="polr" data-theme="{{ isset($user_theme) ? $user_theme : 'default' }}">
 <head>
     <title>@section('title'){{env('APP_NAME')}}@show</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    {{-- Leave this for stats --}}
+    <meta name="current-username" content="{{ session('username') ? session('username') : '' }}">
+    <meta name="current-theme" content="{{ isset($user_theme) ? $user_theme : 'default' }}">
     <meta name="generator" content="Polr {{env('POLR_VERSION')}}" />
     @yield('meta')
 
-    {{-- Load Stylesheets --}}
     @if (env('APP_STYLESHEET'))
     <link rel="stylesheet" href="{{env('APP_STYLESHEET')}}">
     @else
@@ -38,8 +38,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
     <link href="/css/base.css" rel="stylesheet">
     <link href="/css/toastr.min.css" rel="stylesheet">
     <link href="/css/font-awesome.min.css" rel="stylesheet">
+    <link href="/css/themes.css" rel="stylesheet">
 
-    <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="shortcut icon" href="/favicon.svg">
     @yield('css')
 </head>
 <body>
@@ -50,32 +52,48 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
         </div>
     </div>
 
-    {{-- Load JavaScript dependencies --}}
     <script src="/js/constants.js"></script>
     <script src="/js/jquery-1.11.3.min.js"></script>
     <script src="/js/bootstrap.min.js"></script>
     <script src="/js/angular.min.js"></script>
     <script src="/js/toastr.min.js"></script>
     <script src="/js/base.js"></script>
+    <script>
+    (function() {
+        var usernameMeta = document.querySelector('meta[name="current-username"]');
+        var themeMeta = document.querySelector('meta[name="current-theme"]');
+        var username = usernameMeta ? usernameMeta.getAttribute('content') : '';
+        var serverTheme = themeMeta ? themeMeta.getAttribute('content') : 'default';
+        var theme = serverTheme || 'default';
+
+        if (username) {
+            var savedTheme = localStorage.getItem('user_theme_' + username);
+            if (savedTheme) {
+                theme = savedTheme;
+            }
+        }
+
+        document.documentElement.setAttribute('data-theme', theme);
+    })();
+    </script>
 
     <script>
-    @if (Session::has('info'))
-        toastr["info"](`{{ str_replace('`', '\`', session('info')) }}`, "Info")
+    @if (session()->has('info'))
+        toastr["info"](`{{ str_replace('`', '\\`', session('info')) }}`, "提示")
     @endif
-    @if (Session::has('error'))
-        toastr["error"](`{{str_replace('`', '\`', session('error')) }}`, "Error")
+    @if (session()->has('error'))
+        toastr["error"](`{{str_replace('`', '\\`', session('error')) }}`, "錯誤")
     @endif
-    @if (Session::has('warning'))
-        toastr["warning"](`{{ str_replace('`', '\`', session('warning')) }}`, "Warning")
+    @if (session()->has('warning'))
+        toastr["warning"](`{{ str_replace('`', '\\`', session('warning')) }}`, "警告")
     @endif
-    @if (Session::has('success'))
-        toastr["success"](`{{ str_replace('`', '\`', session('success')) }}`, "Success")
+    @if (session()->has('success'))
+        toastr["success"](`{{ str_replace('`', '\\`', session('success')) }}`, "成功")
     @endif
 
     @if (count($errors) > 0)
-        // Handle Lumen validation errors
         @foreach ($errors->all() as $error)
-            toastr["error"](`{{ str_replace('`', '\`', $error) }}`, "Error")
+            toastr["error"](`{{ str_replace('`', '\\`', $error) }}`, "錯誤")
         @endforeach
     @endif
     </script>

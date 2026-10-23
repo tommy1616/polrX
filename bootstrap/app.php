@@ -1,103 +1,70 @@
 <?php
 
-require_once __DIR__.'/../vendor/autoload.php';
+use App\Exceptions\Api\ApiException;
+use App\Http\Middleware\ApiMiddleware;
+use Illuminate\Foundation\Application;
+use Illuminate\Foundation\Configuration\Exceptions;
+use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
-Dotenv::load(__DIR__.'/../');
+return Application::configure(basePath: dirname(__DIR__))
+    ->withRouting(
+        web: __DIR__.'/../routes/web.php',
+        commands: __DIR__.'/../routes/console.php',
+        health: '/up',
+    )
+    ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->alias([
+            'api.polr' => ApiMiddleware::class,
+        ]);
 
-/*
-|--------------------------------------------------------------------------
-| Create The Application
-|--------------------------------------------------------------------------
-|
-| Here we will load the environment and create the application instance
-| that serves as the central piece of this framework. We'll use this
-| application as an "IoC" container and router for this framework.
-|
-*/
+        $middleware->validateCsrfTokens(except: [
+            'api/v*/action/*',
+            'api/v*/data/*',
+        ]);
+    })
+    ->withExceptions(function (Exceptions $exceptions): void {
+        $exceptions->dontReport([
+            ApiException::class,
+            HttpException::class,
+        ]);
 
-$app = new Laravel\Lumen\Application(
-    realpath(__DIR__.'/../')
-);
+        $exceptions->render(function (ApiException $e, Request $request) {
+            $statusCode = $e->getCode() ?: 400;
+            $encoded = $e->getEncodedErrorMessage();
+            $contentType = ($e->response_type === 'json') ? 'application/json' : 'text/plain';
 
-$app->withFacades();
-$app->withEloquent();
+            return response($encoded, $statusCode)
+                ->header('Content-Type', $contentType)
+                ->header('Access-Control-Allow-Origin', '*');
+        });
 
-$app->configure('geoip');
+        $exceptions->render(function (NotFoundHttpException $e, Request $request) {
+            if (! config('app.debug')) {
+                if (env('SETTING_REDIRECT_404') && env('SETTING_INDEX_REDIRECT')) {
+                    return redirect()->to(env('SETTING_INDEX_REDIRECT'));
+                }
 
-/*
-|--------------------------------------------------------------------------
-| Register Container Bindings
-|--------------------------------------------------------------------------
-|
-| Now we will register a few bindings in the service container. We will
-| register the exception handler and the console kernel. You may add
-| your own bindings here if you like or you can make another file.
-|
-*/
+                return response()->view('errors.404', [], 404);
+            }
+        });
 
-$app->singleton(
-    Illuminate\Contracts\Debug\ExceptionHandler::class,
-    App\Exceptions\Handler::class
-);
+        $exceptions->render(function (HttpException $e, Request $request) {
+            if (! config('app.debug')) {
+                $statusCode = $e->getStatusCode();
+                if ($statusCode === 419) {
+                    return null;
+                }
+                if ($statusCode === 500) {
+                    return response()->view('errors.500', [], 500);
+                }
 
-$app->singleton(
-    Illuminate\Contracts\Console\Kernel::class,
-    App\Console\Kernel::class
-);
-
-/*
-|--------------------------------------------------------------------------
-| Register Middleware
-|--------------------------------------------------------------------------
-|
-| Next, we will register the middleware with the application. These can
-| be global middleware that run before and after each request into a
-| route or middleware that'll be assigned to some specific routes.
-|
-*/
-
-$app->middleware([
-    Illuminate\Cookie\Middleware\EncryptCookies::class,
-    // Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
-    Illuminate\Session\Middleware\StartSession::class,
-    Illuminate\View\Middleware\ShareErrorsFromSession::class,
-    App\Http\Middleware\VerifyCsrfToken::class,
-]);
-
-$app->routeMiddleware([
-    'api' => App\Http\Middleware\ApiMiddleware::class,
-]);
-
-/*
-|--------------------------------------------------------------------------
-| Register Service Providers
-|--------------------------------------------------------------------------
-|
-| Here we will register all of the application's service providers which
-| are used to bind services into the container. Service providers are
-| totally optional, so you are not required to uncomment this line.
-|
-*/
-
-$app->register(App\Providers\AppServiceProvider::class);
-$app->register(\Yajra\Datatables\DatatablesServiceProvider::class);
-$app->register(\Torann\GeoIP\GeoIPServiceProvider::class);
-// $app->register(App\Providers\EventServiceProvider::class);
-
-/*
-|--------------------------------------------------------------------------
-| Load The Application Routes
-|--------------------------------------------------------------------------
-|
-| Next we will include the routes file so that they can all be added to
-| the application. This will provide all of the URLs the application
-| can respond to, as well as the controllers that may handle them.
-|
-*/
-
-$app->group(['namespace' => 'App\Http\Controllers'], function ($app) {
-    require __DIR__.'/../app/Http/routes.php';
-});
-
-
-return $app;
+                return response()->view('errors.generic', [
+                    'status_code' => $statusCode,
+                    'status_message' => $e->getMessage(),
+                ], $statusCode);
+            }
+        });
+    })->create();

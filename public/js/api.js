@@ -18,9 +18,9 @@ function apiCall(path, data, callback, fail_callback) {
 
 function res_value_to_text(res_val) {
     if (res_val == 1) {
-        return 'True';
+        return '已啟用';
     }
     else {
-        return 'False';
+        return '已停用';
     }
 }

@@ -7,17 +7,23 @@ use Illuminate\Http\Request;
 
 use App\Helpers\CryptoHelper;
 use App\Helpers\UserHelper;
+use App\Helpers\TotpHelper;
 
 use App\Factories\UserFactory;
 
 class UserController extends Controller {
-    /**
-     * Show pages related to the user control panel.
-     *
-     * @return Response
-     */
     public function displayLoginPage(Request $request) {
         return view('login');
+    }
+
+    public function displayTotpPage(Request $request) {
+        if (!$request->session()->get('pending_2fa_user_id')) {
+            return redirect(route('login'))->with('error', '請先登入帳號密碼。');
+        }
+
+        return view('login_totp', [
+            'pending_username' => $request->session()->get('pending_2fa_username')
+        ]);
     }
 
     public function displaySignupPage(Request $request) {
@@ -31,6 +37,9 @@ class UserController extends Controller {
     public function performLogoutUser(Request $request) {
         $request->session()->forget('username');
         $request->session()->forget('role');
+        $request->session()->forget('pending_2fa_user_id');
+        $request->session()->forget('pending_2fa_username');
+        $request->session()->forget('pending_2fa_role');
         return redirect()->route('index');
     }
 
@@ -41,16 +50,60 @@ class UserController extends Controller {
         $credentials_valid = UserHelper::checkCredentials($username, $password);
 
         if ($credentials_valid != false) {
-            // log user in
             $role = $credentials_valid['role'];
+            $user = UserHelper::getUserByUsername($username, true);
+
+            if ($user && $user->totp_enabled && $user->totp_secret) {
+                $request->session()->regenerate();
+                $request->session()->put('pending_2fa_user_id', $user->id);
+                $request->session()->put('pending_2fa_username', $username);
+                $request->session()->put('pending_2fa_role', $role);
+                $request->session()->forget('username');
+                $request->session()->forget('role');
+
+                return redirect()->route('login_totp');
+            }
+
+            $request->session()->regenerate();
             $request->session()->put('username', $username);
             $request->session()->put('role', $role);
 
             return redirect()->route('index');
         }
         else {
-            return redirect('login')->with('error', 'Invalid password or inactivated account. Try again.');
+            return redirect('login')->with('error', '帳號或密碼錯誤，或帳號尚未啟用。');
         }
+    }
+
+    public function performTotpLogin(Request $request) {
+        $pendingUserId = $request->session()->get('pending_2fa_user_id');
+        if (!$pendingUserId) {
+            return redirect(route('login'))->with('error', '登入驗證已失效，請重新登入。');
+        }
+
+        $user = UserHelper::getUserById($pendingUserId, true);
+        if (!$user || !$user->totp_enabled || !$user->totp_secret || !$user->active) {
+            $request->session()->forget('pending_2fa_user_id');
+            $request->session()->forget('pending_2fa_username');
+            $request->session()->forget('pending_2fa_role');
+            return redirect(route('login'))->with('error', '2FA 狀態異常，請重新登入。');
+        }
+
+        $code = $request->input('totp_code');
+        if (!TotpHelper::verifyCode($user->totp_secret, $code)) {
+            return redirect()->route('login_totp')->with('error', '驗證碼錯誤，請再試一次。');
+        }
+
+        $verifiedUser = $request->session()->get('pending_2fa_username');
+        $verifiedRole = $request->session()->get('pending_2fa_role');
+        $request->session()->regenerate();
+        $request->session()->put('username', $verifiedUser);
+        $request->session()->put('role', $verifiedRole);
+        $request->session()->forget('pending_2fa_user_id');
+        $request->session()->forget('pending_2fa_username');
+        $request->session()->forget('pending_2fa_role');
+
+        return redirect()->route('index');
     }
 
     public function performSignup(Request $request) {
@@ -59,7 +112,6 @@ class UserController extends Controller {
         }
 
         if (env('POLR_ACCT_CREATION_RECAPTCHA')) {
-            // Verify reCAPTCHA if setting is enabled
             $gRecaptchaResponse = $request->input('g-recaptcha-response');
 
             $recaptcha = new \ReCaptcha\ReCaptcha(env('POLR_RECAPTCHA_SECRET_KEY'));
@@ -70,7 +122,6 @@ class UserController extends Controller {
             }
         }
 
-        // Validate signup form data
         $this->validate($request, [
             'username' => 'required|alpha_dash',
             'password' => 'required',
@@ -96,19 +147,16 @@ class UserController extends Controller {
         $email_exists = UserHelper::emailExists($email);
 
         if ($user_exists || $email_exists) {
-            // if user or email email
             return redirect(route('signup'))->with('error', 'Sorry, your email or username already exists. Try again.');
         }
 
         $acct_activation_needed = env('POLR_ACCT_ACTIVATION');
 
         if ($acct_activation_needed == false) {
-            // if no activation is necessary
             $active = 1;
             $response = redirect(route('login'))->with('success', 'Thanks for signing up! You may now log in.');
         }
         else {
-            // email activation is necessary
             $response = redirect(route('login'))->with('success', 'Thanks for signing up! Please confirm your email to continue.');
             $active = 0;
         }
@@ -117,7 +165,6 @@ class UserController extends Controller {
         $api_key = null;
 
         if (env('SETTING_AUTO_API')) {
-            // if automatic API key assignment is on
             $api_active = 1;
             $api_key = CryptoHelper::generateRandomHex(env('_API_KEY_LENGTH'));
         }
@@ -129,7 +176,6 @@ class UserController extends Controller {
                 'username' => $username, 'recovery_key' => $user->recovery_key, 'ip' => $ip
             ], function ($m) use ($user) {
                 $m->from(env('MAIL_FROM_ADDRESS'), env('MAIL_FROM_NAME'));
-
                 $m->to($user->email, $user->username)->subject(env('APP_NAME') . ' account activation');
             });
         }
@@ -156,7 +202,6 @@ class UserController extends Controller {
             'username' => $user->username, 'recovery_key' => $recovery_key, 'ip' => $ip
         ], function ($m) use ($user) {
             $m->from(env('MAIL_FROM_ADDRESS'), env('MAIL_FROM_NAME'));
-
             $m->to($user->email, $user->username)->subject(env('APP_NAME') . ' Password Reset');
         });
 
@@ -167,8 +212,6 @@ class UserController extends Controller {
         $user = UserHelper::getUserByUsername($username, true);
 
         if (UserHelper::userResetKeyCorrect($username, $recovery_key, true)) {
-            // Key is correct
-            // Activate account and reset recovery key
             $user->active = 1;
             $user->save();
 
@@ -189,8 +232,6 @@ class UserController extends Controller {
                 return view('reset_password');
             }
 
-            // Key is correct
-            // Reset password
             $user->password = Hash::make($new_password);
             $user->save();
 
@@ -200,7 +241,5 @@ class UserController extends Controller {
         else {
             return redirect(route('index'))->with('error', 'Username or reset key incorrect.');
         }
-
     }
-
 }

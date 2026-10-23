@@ -1,6 +1,7 @@
 @extends('layouts.base')
 
 @section('css')
+<link rel='stylesheet' href='/css/themes.css'>
 <link rel='stylesheet' href='/css/admin.css'>
 <link rel='stylesheet' href='/css/datatables.min.css'>
 @endsection
@@ -9,24 +10,24 @@
 <div ng-controller="AdminCtrl" class="ng-root">
     <div class='col-md-2'>
         <ul class='nav nav-pills nav-stacked admin-nav' role='tablist'>
-            <li role='presentation' aria-controls="home" class='admin-nav-item active'><a href='#home'>Home</a></li>
-            <li role='presentation' aria-controls="links" class='admin-nav-item'><a href='#links'>Links</a></li>
-            <li role='presentation' aria-controls="settings" class='admin-nav-item'><a href='#settings'>Settings</a></li>
+            <li role='presentation' aria-controls="home" class='admin-nav-item active'><a href='#home'>首頁</a></li>
+            <li role='presentation' aria-controls="links" class='admin-nav-item'><a href='#links'>連結</a></li>
+            <li role='presentation' aria-controls="settings" class='admin-nav-item'><a href='#settings'>設定</a></li>
 
             @if ($role == $admin_role)
-            <li role='presentation' class='admin-nav-item'><a href='#admin'>Admin</a></li>
+            <li role='presentation' class='admin-nav-item'><a href='#admin'>管理</a></li>
             @endif
 
             @if ($api_active == 1)
-            <li role='presentation' class='admin-nav-item'><a href='#developer'>Developer</a></li>
+            <li role='presentation' class='admin-nav-item'><a href='#developer'>開發者</a></li>
             @endif
         </ul>
     </div>
     <div class='col-md-10'>
         <div class="tab-content">
             <div role="tabpanel" class="tab-pane active" id="home">
-                <h2>Welcome to your {{env('APP_NAME')}} dashboard!</h2>
-                <p>Use the links on the left hand side to navigate your {{env('APP_NAME')}} dashboard.</p>
+                <h2>歡迎使用 {{env('APP_NAME')}} 後台</h2>
+                <p>請使用左側選單管理你的短網址、帳號與設定。</p>
             </div>
 
             <div role="tabpanel" class="tab-pane" id="links">
@@ -36,32 +37,115 @@
             </div>
 
             <div role="tabpanel" class="tab-pane" id="settings">
-                <h3>Change Password</h3>
+                <h3>修改密碼</h3>
                 <form action='/admin/action/change_password' method='POST'>
-                    Old Password: <input class="form-control password-box" type='password' name='current_password' />
-                    New Password: <input class="form-control password-box" type='password' name='new_password' />
+                    目前密碼： <input class="form-control password-box" type='password' name='current_password' />
+                    新密碼： <input class="form-control password-box" type='password' name='new_password' />
                     <input type="hidden" name='_token' value='{{csrf_token()}}' />
-                    <input type='submit' class='btn btn-success change-password-btn'/>
+                    <input type='submit' class='btn btn-success change-password-btn' value='更新密碼'/>
                 </form>
+
+                <hr style="margin: 36px 0 28px;">
+
+                <div class="theme-selector">
+                    <h3>主題設定</h3>
+                    <p style="color:#666; margin-bottom: 16px;">選擇你喜歡的介面主題，設定會自動儲存。</p>
+                    <div class="theme-options">
+                        <div class="theme-option {{($user_theme == 'default') ? 'active' : ''}}" data-theme="default">
+                            <div class="theme-preview default">預設主題</div>
+                            <div class="theme-name">預設</div>
+                            <div class="theme-description">經典原始風格</div>
+                        </div>
+                        <div class="theme-option {{($user_theme == 'dark-tech') ? 'active' : ''}}" data-theme="dark-tech">
+                            <div class="theme-preview dark-tech">霓虹夜幕</div>
+                            <div class="theme-name">霓虹夜幕</div>
+                            <div class="theme-description">黑底霓虹控制台感</div>
+                        </div>
+                        <div class="theme-option {{($user_theme == 'blue-purple') ? 'active' : ''}}" data-theme="blue-purple">
+                            <div class="theme-preview blue-purple">紙感鼠尾草</div>
+                            <div class="theme-name">紙感鼠尾草</div>
+                            <div class="theme-description">暖白編輯感與鼠尾草點綴</div>
+                        </div>
+                        <div class="theme-option {{($user_theme == 'soft-pastel') ? 'active' : ''}}" data-theme="soft-pastel">
+                            <div class="theme-preview soft-pastel">柔和粉彩</div>
+                            <div class="theme-name">柔和粉彩</div>
+                            <div class="theme-description">溫柔舒適色調</div>
+                        </div>
+                    </div>
+                </div>
+
+                <hr style="margin: 36px 0 28px;">
+
+                <h3>登入兩步驟驗證（TOTP）</h3>
+                @if ($totp_enabled)
+                    <div class="well" style="background:#f7fbf3; border-color:#d8e7c2;">
+                        <p style="margin-bottom: 8px;"><strong>目前狀態：</strong> 已啟用</p>
+                        <p style="color:#666; margin-bottom: 18px;">之後登入時，輸入帳號密碼後還需要再輸入一次驗證器的 6 碼驗證碼。</p>
+                        <form action='/admin/action/totp/disable' method='POST' style="max-width: 420px;">
+                            <label style="display:block; margin-bottom: 8px;">目前密碼：</label>
+                            <input class="form-control password-box" type='password' name='disable_totp_current_password' />
+                            <input type="hidden" name='_token' value='{{csrf_token()}}' />
+                            <input type='submit' class='btn btn-danger' style="margin-top: 14px;" value='停用 2FA'/>
+                        </form>
+                    </div>
+                @elseif ($pending_totp_secret)
+                    <div class="well">
+                        <p style="margin-bottom: 12px;">使用 Google Authenticator、1Password、Authy 或其他支援 TOTP 的驗證器掃描下方 QR code。</p>
+                        <div style="display:flex; flex-wrap:wrap; gap: 24px; align-items:flex-start; margin-bottom: 16px;">
+                            <div>
+                                <div id="totp-qrcode" style="width: 190px; min-height: 190px; padding: 12px; background: #fff; border: 1px solid #e4e4e4; border-radius: 10px;"></div>
+                            </div>
+                            <div style="flex:1; min-width: 260px;">
+                                <p style="margin-bottom: 10px;"><strong>帳號標籤：</strong> {{$totp_label}}</p>
+                                <p style="margin-bottom: 10px;"><strong>手動輸入金鑰：</strong></p>
+                                <code style="display:block; padding: 12px 14px; background:#f6f8fa; border-radius: 8px; word-break: break-all;">{{$pending_totp_secret}}</code>
+                            </div>
+                        </div>
+
+                        <form action='/admin/action/totp/confirm' method='POST' style="max-width: 460px;">
+                            <label style="display:block; margin-bottom: 8px;">目前密碼：</label>
+                            <input class="form-control password-box" type='password' name='totp_current_password' />
+                            <label style="display:block; margin: 14px 0 8px;">驗證器上的 6 碼驗證碼：</label>
+                            <input class="form-control password-box" type='text' inputmode='numeric' maxlength='6' name='totp_code' placeholder='123456' />
+                            <input type="hidden" name='_token' value='{{csrf_token()}}' />
+                            <div style="margin-top: 14px; display:flex; gap:10px; flex-wrap:wrap;">
+                                <input type='submit' class='btn btn-success' value='確認啟用 2FA'/>
+                            </div>
+                        </form>
+
+                        <form action='/admin/action/totp/cancel' method='POST' style="margin-top: 10px;">
+                            <input type="hidden" name='_token' value='{{csrf_token()}}' />
+                            <input type='submit' class='btn btn-default' value='取消綁定'/>
+                        </form>
+                    </div>
+                @else
+                    <div class="well">
+                        <p style="margin-bottom: 10px;">啟用後，登入時除了帳號密碼，還需要再輸入驗證器 App 的 6 碼 TOTP 驗證碼。</p>
+                        <form action='/admin/action/totp/start' method='POST'>
+                            <input type="hidden" name='_token' value='{{csrf_token()}}' />
+                            <input type='submit' class='btn btn-primary' value='開始綁定 2FA'/>
+                        </form>
+                    </div>
+                @endif
             </div>
 
             @if ($role == $admin_role)
             <div role="tabpanel" class="tab-pane" id="admin">
-                <h3>Links</h3>
+                <h3>所有連結</h3>
                 @include('snippets.link_table', [
                     'table_id' => 'admin_links_table'
                 ])
 
-                <h3 class="users-heading">Users</h3>
-                <a ng-click="state.showNewUserWell = !state.showNewUserWell" class="btn btn-primary btn-sm status-display">New</a>
+                <h3 class="users-heading">使用者</h3>
+                <a ng-click="state.showNewUserWell = !state.showNewUserWell" class="btn btn-primary btn-sm status-display">新增</a>
 
                 <div ng-if="state.showNewUserWell" class="new-user-fields well">
                     <table class="table">
                         <tr>
-                            <th>Username</th>
-                            <th>Password</th>
+                            <th>帳號</th>
+                            <th>密碼</th>
                             <th>Email</th>
-                            <th>Role</th>
+                            <th>角色</th>
                             <th></th>
                         </tr>
                         <tr id="new-user-form">
@@ -76,7 +160,7 @@
                                 </select>
                             </td>
                             <td>
-                                <a ng-click="addNewUser($event)" class="btn btn-primary btn-sm status-display new-user-add">Add</a>
+                                <a ng-click="addNewUser($event)" class="btn btn-primary btn-sm status-display new-user-add">新增</a>
                             </td>
                         </tr>
                     </table>
@@ -91,34 +175,33 @@
 
             @if ($api_active == 1)
             <div role="tabpanel" class="tab-pane" id="developer">
-                <h3>Developer</h3>
+                <h3>開發者</h3>
 
-                <p>API keys and documentation for developers.</p>
+                <p>這裡提供 API 金鑰與開發文件。</p>
                 <p>
-                    Documentation:
+                    文件：
                     <a href='http://docs.polr.me/en/latest/developer-guide/api/'>http://docs.polr.me/en/latest/developer-guide/api/</a>
                 </p>
 
-                <h4>API Key: </h4>
+                <h4>API 金鑰：</h4>
                 <div class='row'>
                     <div class='col-md-8'>
                         <input class='form-control status-display' disabled type='text' value='{{$api_key}}'>
                     </div>
                     <div class='col-md-4'>
-                        <a href='#' ng-click="generateNewAPIKey($event, '{{$user_id}}', true)" id='api-reset-key' class='btn btn-danger'>Reset</a>
+                        <a href='#' ng-click="generateNewAPIKey($event, '{{$user_id}}', true)" id='api-reset-key' class='btn btn-danger'>重設</a>
                     </div>
                 </div>
 
-
-                <h4>API Quota: </h4>
+                <h4>API 額度：</h4>
                 <h2 class='api-quota'>
                     @if ($api_quota == -1)
-                        unlimited
+                        無限制
                     @else
                         <code>{{$api_quota}}</code>
                     @endif
                 </h2>
-                <span> requests per minute</span>
+                <span>每分鐘請求次數</span>
             </div>
             @endif
         </div>
@@ -132,16 +215,28 @@
             generate-new-api-key="generateNewAPIKey" clean-modals="cleanModals"></edit-user-api-info>
     </div>
 </div>
-
-
 @endsection
 
 @section('js')
-{{-- Include modal templates --}}
+<script src='/js/theme-switcher.js'></script>
 @include('snippets.modals')
-
-{{-- Include extra JS --}}
 <script src='/js/datatables.min.js'></script>
 <script src='/js/api.js'></script>
 <script src='/js/AdminCtrl.js'></script>
+<script src='/js/qrcode.min.js'></script>
+@if ($pending_totp_otpauth)
+<script>
+(function () {
+    var target = document.getElementById('totp-qrcode');
+    if (!target) return;
+    target.innerHTML = '';
+    new QRCode(target, {
+        text: {!! json_encode($pending_totp_otpauth) !!},
+        width: 164,
+        height: 164,
+        correctLevel: QRCode.CorrectLevel.M
+    });
+})();
+</script>
+@endif
 @endsection

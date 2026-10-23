@@ -98,9 +98,9 @@
 {{-- Load data --}}
 <script>
 // Load data
-var dayData = JSON.parse('{!! json_encode($day_stats) !!}');
-var refererData = JSON.parse('{!! json_encode($referer_stats) !!}');
-var countryData = JSON.parse('{!! json_encode($country_stats) !!}');
+var dayData = {!! json_encode($day_stats, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!};
+var refererData = {!! json_encode($referer_stats, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!};
+var countryData = {!! json_encode($country_stats, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!};
 
 // Load datepicker dates
 var datePickerLeftBound = '{{ $left_bound }}';

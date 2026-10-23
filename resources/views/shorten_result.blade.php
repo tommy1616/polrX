@@ -5,15 +5,15 @@
 @endsection
 
 @section('content')
-<h3>Shortened URL</h3>
+<h3>短網址已建立</h3>
 <div class="input-group">
     <input type='text' class='result-box form-control' value='{{$short_url}}' id='short_url' />
-    <div class='input-group-addon' id='clipboard-copy' data-clipboard-target='#short_url' data-toggle='tooltip' data-placement='bottom' data-title='Copied!'>
-        <i class='fa fa-clipboard' aria-hidden='true' title='Copy to clipboard'></i>
+    <div class='input-group-addon' id='clipboard-copy' data-clipboard-target='#short_url' data-toggle='tooltip' data-placement='bottom' data-title='已複製'>
+        <i class='fa fa-clipboard' aria-hidden='true' title='複製到剪貼簿'></i>
     </div>
 </div>
-<a id="generate-qr-code" class='btn btn-primary'>Generate QR Code</a>
-<a href='{{route('index')}}' class='btn btn-info'>Shorten another</a>
+<a id="generate-qr-code" class='btn btn-primary'>產生 QR Code</a>
+<a href='{{route('index')}}' class='btn btn-info'>再縮一筆</a>
 
 <div class="qr-code-container"></div>
 

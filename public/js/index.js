@@ -21,21 +21,21 @@ $(function() {
             },
             dataType: "html"
         });
-        $('#link-availability-status').html('<span><i class="fa fa-spinner"></i> Loading</span>');
+        $('#link-availability-status').html('<span><i class="fa fa-spinner"></i> 檢查中</span>');
         request.done(function(msg) {
             if (msg == 'unavailable') {
-                $('#link-availability-status').html(' <span style="color:red"><i class="fa fa-ban"></i> Already in use</span>');
+                $('#link-availability-status').html(' <span style="color:red"><i class="fa fa-ban"></i> 已被使用</span>');
             } else if (msg == 'available') {
-                $('#link-availability-status').html('<span style="color:green"><i class="fa fa-check"></i> Available</span>');
+                $('#link-availability-status').html('<span style="color:green"><i class="fa fa-check"></i> 可使用</span>');
             } else if (msg == 'invalid') {
-                $('#link-availability-status').html('<span style="color:orange"><i class="fa fa-exclamation-triangle"></i> Invalid Custom URL Ending</span>');
+                $('#link-availability-status').html('<span style="color:orange"><i class="fa fa-exclamation-triangle"></i> 自訂短碼格式不正確</span>');
             } else {
-                $('#link-availability-status').html(' <span style="color:red"><i class="fa fa-exclamation-circle"></i> An error occured. Try again</span>' + msg);
+                $('#link-availability-status').html(' <span style="color:red"><i class="fa fa-exclamation-circle"></i> 發生錯誤，請再試一次</span>' + msg);
             }
         });
 
         request.fail(function(jqXHR, textStatus) {
-            $('#link-availability-status').html(' <span style="color:red"><i class="fa fa-exclamation-circle"></i> An error occured. Try again</span>' + textstatus);
+            $('#link-availability-status').html(' <span style="color:red"><i class="fa fa-exclamation-circle"></i> 發生錯誤，請再試一次</span>' + textstatus);
         });
     });
     min = 1;
@@ -54,10 +54,10 @@ $(function() {
     function changeTips(tcase) {
         switch (tcase) {
             case 1:
-                setTip('Create an account to keep track of your links');
+                setTip('建立帳號後，就能集中管理與追蹤你的短網址');
                 break;
             case 2:
-                setTip('Did you know you can change the URL ending by clicking on "Link Options"?');
+                setTip('你知道嗎？點一下「連結選項」就能自訂短網址尾碼');
                 i = 1;
                 break;
         }

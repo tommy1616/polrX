@@ -48,6 +48,10 @@ class LinkFactory {
                 maximum length allowed.');
         }
 
+        if (! preg_match('/^https?:\/\//i', (string) $long_url)) {
+            throw new \Exception('Only HTTP and HTTPS URLs are allowed.');
+        }
+
         $is_already_short = LinkHelper::checkIfAlreadyShortened($long_url);
 
         if ($is_already_short) {

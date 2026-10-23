@@ -73,7 +73,7 @@ class UserHelper {
         $user = self::getUserByUsername($username, $inactive);
 
         if ($user) {
-            if ($recovery_key != $user->recovery_key) {
+            if (!$user->recovery_key || !hash_equals((string) $user->recovery_key, (string) $recovery_key)) {
                 return false;
             }
         }

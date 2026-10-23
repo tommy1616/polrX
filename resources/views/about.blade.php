@@ -21,9 +21,9 @@
     <p>你目前以管理員身份登入，因此可以看到系統資訊。若要修改本頁內容，可編輯 <code>resources/views/about.blade.php</code></p>
     @endif
 
-    <p>{{env('APP_NAME')}} 採用 Polr 2 架設，這是一套開源、極簡風格的短網址系統。Polr Project 與本站沒有直接關聯。
-        你可以前往 <a href='https://github.com/Cydrobolt/polr'>GitHub 頁面</a> 或 <a href="//project.polr.me">專案網站</a> 了解更多。
-        <br />Polr 採用 GNU GPL 授權。
+    <p>{{env('APP_NAME')}} 採用 polrX（基於 Polr 2 重構之 Laravel 13 短網址系統）架設。
+        你可以前往 <a href='https://github.com/tommy1616/polrX' target='_blank' rel='noopener noreferrer'>GitHub 專案頁面（tommy1616/polrX）</a> 了解更多。
+        <br />polrX 採用 GNU GPL v2+ 授權釋出。
     </p>
 </div>
 

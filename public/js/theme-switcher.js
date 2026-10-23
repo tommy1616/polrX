@@ -1,64 +1,90 @@
-(function() {
-    document.addEventListener('DOMContentLoaded', function() {
-        var themeOptions = document.querySelectorAll('.theme-option');
-        if (!themeOptions.length) {
-            return;
-        }
+(function () {
+    'use strict';
 
-        var usernameMeta = document.querySelector('meta[name="current-username"]');
-        var csrfMeta = document.querySelector('meta[name="csrf-token"]');
-        var username = usernameMeta ? usernameMeta.getAttribute('content') : '';
-        var csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
+    function getMetaContent(name) {
+        var el = document.querySelector('meta[name="' + name + '"]');
+        return el ? el.getAttribute('content') || '' : '';
+    }
 
-        function setActiveTheme(selectedTheme) {
-            themeOptions.forEach(function(opt) {
-                opt.classList.toggle('active', opt.getAttribute('data-theme') === selectedTheme);
+    function applyTheme(themeKey) {
+        if (!themeKey) return;
+        document.documentElement.setAttribute('data-theme', themeKey);
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        var cards = document.querySelectorAll('.polrx-theme-card[data-theme]');
+        if (!cards.length) return;
+
+        var csrfToken = getMetaContent('csrf-token');
+        var busy = false;
+
+        function markActive(themeKey) {
+            cards.forEach(function (card) {
+                var match = card.getAttribute('data-theme') === themeKey;
+                card.classList.toggle('is-active', match);
+                card.setAttribute('aria-pressed', match ? 'true' : 'false');
             });
         }
 
-        themeOptions.forEach(function(option) {
-            option.addEventListener('click', function() {
-                var selectedTheme = this.getAttribute('data-theme');
-                var previousTheme = document.documentElement.getAttribute('data-theme') || 'default';
+        function selectTheme(card) {
+            if (busy) return;
+            var nextTheme = card.getAttribute('data-theme');
+            var prevTheme = document.documentElement.getAttribute('data-theme') || 'default';
+            if (!nextTheme || nextTheme === prevTheme) return;
 
-                setActiveTheme(selectedTheme);
-                document.documentElement.setAttribute('data-theme', selectedTheme);
+            busy = true;
+            applyTheme(nextTheme);
+            markActive(nextTheme);
 
-                var payload = new URLSearchParams();
-                payload.append('theme', selectedTheme);
-                payload.append('_token', csrfToken);
+            var body = new URLSearchParams();
+            body.set('theme', nextTheme);
+            body.set('_token', csrfToken);
 
-                fetch('/admin/action/change_theme', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-                        'X-CSRF-TOKEN': csrfToken,
-                        'Accept': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    credentials: 'same-origin',
-                    body: payload.toString()
-                })
-                .then(function(response) {
-                    return response.json().then(function(data) {
-                        if (!response.ok || !data.success) {
-                            throw new Error((data && data.message) ? data.message : '主題儲存失敗');
+            fetch('/admin/action/change_theme', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'same-origin',
+                body: body.toString()
+            })
+                .then(function (res) {
+                    return res.json().then(function (payload) {
+                        if (!res.ok || !payload || !payload.success) {
+                            throw new Error((payload && payload.message) || '主題儲存失敗');
                         }
-                        return data;
+                        return payload;
                     });
                 })
-                .then(function(data) {
-                    if (username) {
-                        localStorage.setItem('user_theme_' + username, data.theme);
+                .then(function (payload) {
+                    if (window.toastr) {
+                        toastr.success(payload.message || '主題已更新', '成功');
                     }
-                    toastr.success('主題已更新。', '成功');
                 })
-                .catch(function(error) {
-                    document.documentElement.setAttribute('data-theme', previousTheme);
-                    setActiveTheme(previousTheme);
-                    toastr.error(error.message || '主題更新失敗。', '錯誤');
-                    console.error('主題更新失敗：', error);
+                .catch(function (err) {
+                    applyTheme(prevTheme);
+                    markActive(prevTheme);
+                    if (window.toastr) {
+                        toastr.error(err.message || '主題更新失敗', '錯誤');
+                    }
+                })
+                .finally(function () {
+                    busy = false;
                 });
+        }
+
+        cards.forEach(function (card) {
+            card.addEventListener('click', function () {
+                selectTheme(card);
+            });
+            card.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    selectTheme(card);
+                }
             });
         });
     });

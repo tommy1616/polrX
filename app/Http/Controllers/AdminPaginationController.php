@@ -17,9 +17,13 @@ class AdminPaginationController extends Controller {
 
     /* Cell rendering functions */
 
+    private function escapeJsArg($value): string {
+        return e(addcslashes((string) $value, "\\'\n\r"));
+    }
+
     public function renderLongUrlCell($link) {
-        return '<a target="_blank" title="' . e($link->long_url) . '" href="'. e($link->long_url) .'">' . e(Str::limit($link->long_url, 50)) . '</a>
-            <a class="btn btn-primary btn-xs edit-long-link-btn" ng-click="editLongLink(\'' . e($link->short_url) . '\', \'' . e($link->long_url) . '\')"><i class="fa fa-edit edit-link-icon"></i></a>';
+        return '<a target="_blank" rel="noopener noreferrer" title="' . e($link->long_url) . '" href="'. e($link->long_url) .'">' . e(Str::limit($link->long_url, 50)) . '</a>
+            <a class="btn btn-primary btn-xs edit-long-link-btn" ng-click="editLongLink(\'' . $this->escapeJsArg($link->short_url) . '\', \'' . $this->escapeJsArg($link->long_url) . '\')"><i class="fa fa-edit edit-link-icon"></i></a>';
     }
 
     public function renderClicksCell($link) {

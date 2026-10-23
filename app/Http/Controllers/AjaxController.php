@@ -1,70 +1,49 @@
 <?php
+
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Helpers\LinkHelper;
-use App\Helpers\CryptoHelper;
-use App\Helpers\UserHelper;
-use App\Models\User;
-use App\Models\Link;
-use App\Models\Click;
 use App\Factories\UserFactory;
+use App\Helpers\CryptoHelper;
+use App\Helpers\LinkHelper;
+use App\Helpers\UserHelper;
+use Illuminate\Http\Request;
 
-class AjaxController extends Controller {
-    /**
-     * Process AJAX requests.
-     *
-     * @return Response
-     */
-    public function checkLinkAvailability(Request $request) {
+class AjaxController extends Controller
+{
+    public function checkLinkAvailability(Request $request)
+    {
         $link_ending = $request->input('link_ending');
         $ending_conforms = LinkHelper::validateEnding($link_ending);
 
-        if (!$ending_conforms) {
-            return "invalid";
-        }
-        else if (LinkHelper::linkExists($link_ending)) {
-            // if ending already exists
-            return "unavailable";
-        }
-        else {
-            return "available";
+        if (! $ending_conforms) {
+            return 'invalid';
+        } elseif (LinkHelper::linkExists($link_ending)) {
+            return 'unavailable';
+        } else {
+            return 'available';
         }
     }
 
-    public function toggleAPIActive(Request $request) {
+    public function toggleAPIActive(Request $request)
+    {
         self::ensureAdmin();
 
         $user_id = $request->input('user_id');
-        $user = UserHelper::getUserById($user_id);
+        $user = UserHelper::getUserById($user_id, true);
 
-        if (!$user) {
+        if (! $user) {
             abort(404, 'User not found.');
         }
-        $current_status = $user->api_active;
 
-        if ($current_status == 1) {
-            $new_status = 0;
-        }
-        else {
-            $new_status = 1;
-        }
-
-        $user->api_active = $new_status;
+        $user->api_active = ($user->api_active == 1) ? 0 : 1;
         $user->save();
 
         return $user->api_active;
     }
 
-    public function generateNewAPIKey(Request $request) {
-        /**
-         * If user is an admin, allow resetting of any API key
-         *
-         * If user is not an admin, allow resetting of own key only, and only if
-         * API is enabled for the account.
-         * @return string; new API key
-         */
-
+    public function generateNewAPIKey(Request $request)
+    {
+        self::ensureLoggedIn();
 
         $user_id = $request->input('user_id');
         $user = UserHelper::getUserById($user_id);
@@ -72,187 +51,192 @@ class AjaxController extends Controller {
         $username_user_requesting = session('username');
         $user_requesting = UserHelper::getUserByUsername($username_user_requesting);
 
-        if (!$user) {
+        if (! $user || ! $user_requesting) {
             abort(404, 'User not found.');
         }
 
-        if ($user != $user_requesting) {
-            // if user is attempting to reset another user's API key,
-            // ensure they are an admin
+        if ($user->id !== $user_requesting->id) {
             self::ensureAdmin();
-        }
-        else {
-            // user is attempting to reset own key
-            // ensure that user is permitted to access the API
-            $user_api_enabled = $user->api_active;
-            if (!$user_api_enabled) {
-                // if the user does not have API access toggled on,
-                // allow only if user is an admin
+        } else {
+            if (! $user->api_active) {
                 self::ensureAdmin();
             }
         }
 
-        $new_api_key = CryptoHelper::generateRandomHex(env('_API_KEY_LENGTH'));
+        $new_api_key = CryptoHelper::generateRandomHex((int) env('_API_KEY_LENGTH', 15));
         $user->api_key = $new_api_key;
         $user->save();
 
         return $user->api_key;
     }
 
-    public function editAPIQuota(Request $request) {
-        /**
-         * If user is an admin, allow the user to edit the per minute API quota of
-         * any user.
-         */
-
+    public function editAPIQuota(Request $request)
+    {
         self::ensureAdmin();
 
         $user_id = $request->input('user_id');
-        $new_quota = $request->input('new_quota');
-        $user = UserHelper::getUserById($user_id);
+        $new_quota = (int) $request->input('new_quota');
+        $user = UserHelper::getUserById($user_id, true);
 
-        if (!$user) {
+        if (! $user) {
             abort(404, 'User not found.');
         }
+
         $user->api_quota = $new_quota;
         $user->save();
-        return "OK";
+
+        return 'OK';
     }
 
-    public function toggleUserActive(Request $request) {
+    public function toggleUserActive(Request $request)
+    {
         self::ensureAdmin();
 
         $user_id = $request->input('user_id');
         $user = UserHelper::getUserById($user_id, true);
 
-        if (!$user) {
+        if (! $user) {
             abort(404, 'User not found.');
         }
-        $current_status = $user->active;
 
-        if ($current_status == 1) {
-            $new_status = 0;
-        }
-        else {
-            $new_status = 1;
+        if (session('username') === $user->username) {
+            abort(400, 'Cannot disable your own account.');
         }
 
-        $user->active = $new_status;
+        $user->active = ($user->active == 1) ? 0 : 1;
         $user->save();
 
         return $user->active;
     }
 
-    public function changeUserRole(Request $request) {
+    public function changeUserRole(Request $request)
+    {
         self::ensureAdmin();
 
         $user_id = $request->input('user_id');
-        $role = $request->input('role');
+        $role = (string) $request->input('role', '');
         $user = UserHelper::getUserById($user_id, true);
 
-        if (!$user) {
+        if (! $user) {
             abort(404, 'User not found.');
+        }
+
+        if (session('username') === $user->username) {
+            abort(400, 'Cannot change your own role.');
+        }
+
+        if (! in_array($role, array_values(UserHelper::$USER_ROLES), true)) {
+            abort(400, 'Invalid role.');
         }
 
         $user->role = $role;
         $user->save();
 
-        return "OK";
+        return 'OK';
     }
 
-    public function addNewUser(Request $request) {
+    public function addNewUser(Request $request)
+    {
         self::ensureAdmin();
+
+        $this->validate($request, [
+            'username' => 'required|alpha_dash|unique:users,username',
+            'user_password' => 'required|min:6',
+            'user_email' => 'required|email|unique:users,email',
+        ]);
 
         $ip = $request->ip();
         $username = $request->input('username');
         $user_password = $request->input('user_password');
         $user_email = $request->input('user_email');
-        $user_role = $request->input('user_role');
+        $user_role = (string) $request->input('user_role', '');
+
+        if (! in_array($user_role, array_values(UserHelper::$USER_ROLES), true)) {
+            $user_role = UserHelper::$USER_ROLES['default'];
+        }
 
         UserFactory::createUser($username, $user_email, $user_password, 1, $ip, false, 0, $user_role);
 
-        return "OK";
+        return 'OK';
     }
 
-    public function deleteUser(Request $request) {
+    public function deleteUser(Request $request)
+    {
         self::ensureAdmin();
 
         $user_id = $request->input('user_id');
         $user = UserHelper::getUserById($user_id, true);
 
-        if (!$user) {
+        if (! $user) {
             abort(404, 'User not found.');
         }
 
+        if (session('username') === $user->username) {
+            abort(400, 'Cannot delete your own account.');
+        }
+
         $user->delete();
-        return "OK";
+
+        return 'OK';
     }
 
-    public function deleteLink(Request $request) {
+    public function deleteLink(Request $request)
+    {
         self::ensureAdmin();
 
         $link_ending = $request->input('link_ending');
         $link = LinkHelper::linkExists($link_ending);
 
-        if (!$link) {
+        if (! $link) {
             abort(404, 'Link not found.');
         }
 
         $link->delete();
-        return "OK";
+
+        return 'OK';
     }
 
-    public function toggleLink(Request $request) {
+    public function toggleLink(Request $request)
+    {
         self::ensureAdmin();
 
         $link_ending = $request->input('link_ending');
         $link = LinkHelper::linkExists($link_ending);
 
-        if (!$link) {
+        if (! $link) {
             abort(404, 'Link not found.');
         }
 
-        $current_status = $link->is_disabled;
-
-        $new_status = 1;
-
-        if ($current_status == 1) {
-            // if currently disabled, then enable
-            $new_status = 0;
-        }
-
+        $new_status = ($link->is_disabled == 1) ? 0 : 1;
         $link->is_disabled = $new_status;
-
         $link->save();
 
-        return ($new_status ? "Enable" : "Disable");
+        return $new_status ? 'Enable' : 'Disable';
     }
 
-    public function editLinkLongUrl(Request $request) {
-        /**
-         * If user is an admin, allow the user to edit the value of any link's long URL.
-         * Otherwise, only allow the user to edit their own links.
-         */
+    public function editLinkLongUrl(Request $request)
+    {
+        self::ensureLoggedIn();
 
         $link_ending = $request->input('link_ending');
         $link = LinkHelper::linkExists($link_ending);
-
         $new_long_url = $request->input('new_long_url');
 
         $this->validate($request, [
-            'new_long_url' => 'required|url',
+            'new_long_url' => ['required', 'url', 'regex:/^https?:\/\//i'],
         ]);
 
-        if (!$link) {
+        if (! $link) {
             abort(404, 'Link not found.');
         }
 
-        if ($link->creator !== session('username')) {
+        if ($link->creator === '' || $link->creator !== session('username')) {
             self::ensureAdmin();
         }
 
         $link->long_url = $new_long_url;
         $link->save();
-        return "OK";
+
+        return 'OK';
     }
 }

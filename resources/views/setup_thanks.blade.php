@@ -25,7 +25,7 @@ Setup Completed
         <p>Your Polr setup is complete. To continue, you may <a href='{{route('login')}}'>login</a> or
             access your <a href='{{route('index')}}'>home page</a>.
         </p>
-        <p>Consider taking a look at the <a href='http://docs.polr.me/'>docs</a> or <a href='//github.com/cydrobolt/polr'>README</a>
+        <p>Consider taking a look at the <a href='https://github.com/tommy1616/polrX'>GitHub README</a>
             for assistance.
         </p>
         <p>You may also join us on IRC at <a href='//webchat.freenode.net/?channels=#polr'><code>#polr</code></a> on freenode for assistance or questions.</p>

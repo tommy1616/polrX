@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 
 use App\Helpers\CryptoHelper;
+use App\Helpers\ThemeHelper;
 use App\Helpers\UserHelper;
 use App\Helpers\TotpHelper;
 
@@ -35,11 +36,8 @@ class UserController extends Controller {
     }
 
     public function performLogoutUser(Request $request) {
-        $request->session()->forget('username');
-        $request->session()->forget('role');
-        $request->session()->forget('pending_2fa_user_id');
-        $request->session()->forget('pending_2fa_username');
-        $request->session()->forget('pending_2fa_role');
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
         return redirect()->route('index');
     }
 
@@ -67,6 +65,7 @@ class UserController extends Controller {
             $request->session()->regenerate();
             $request->session()->put('username', $username);
             $request->session()->put('role', $role);
+            $request->session()->put('theme', ThemeHelper::normalize($user ? $user->theme : 'default'));
 
             return redirect()->route('index');
         }
@@ -99,6 +98,7 @@ class UserController extends Controller {
         $request->session()->regenerate();
         $request->session()->put('username', $verifiedUser);
         $request->session()->put('role', $verifiedRole);
+        $request->session()->put('theme', ThemeHelper::normalize($user->theme));
         $request->session()->forget('pending_2fa_user_id');
         $request->session()->forget('pending_2fa_username');
         $request->session()->forget('pending_2fa_role');

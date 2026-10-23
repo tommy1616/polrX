@@ -77,7 +77,7 @@ class LinkController extends Controller {
         		return abort(403);
         	}
         	else {
-        		if ($link_secret_key != $secret_key) {
+        		if (!hash_equals((string) $link_secret_key, (string) $secret_key)) {
         			// a secret key is provided, but it is incorrect
         			return abort(403);
         		}

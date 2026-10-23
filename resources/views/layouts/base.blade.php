@@ -58,24 +58,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
     <script src="/js/angular.min.js"></script>
     <script src="/js/toastr.min.js"></script>
     <script src="/js/base.js"></script>
-    <script>
-    (function() {
-        var usernameMeta = document.querySelector('meta[name="current-username"]');
-        var themeMeta = document.querySelector('meta[name="current-theme"]');
-        var username = usernameMeta ? usernameMeta.getAttribute('content') : '';
-        var serverTheme = themeMeta ? themeMeta.getAttribute('content') : 'default';
-        var theme = serverTheme || 'default';
-
-        if (username) {
-            var savedTheme = localStorage.getItem('user_theme_' + username);
-            if (savedTheme) {
-                theme = savedTheme;
-            }
-        }
-
-        document.documentElement.setAttribute('data-theme', theme);
-    })();
-    </script>
 
     <script>
     @if (session()->has('info'))

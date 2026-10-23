@@ -48,29 +48,27 @@
                 <hr style="margin: 36px 0 28px;">
 
                 <div class="theme-selector">
-                    <h3>主題設定</h3>
-                    <p style="color:#666; margin-bottom: 16px;">選擇你喜歡的介面主題，設定會自動儲存。</p>
-                    <div class="theme-options">
-                        <div class="theme-option {{($user_theme == 'default') ? 'active' : ''}}" data-theme="default">
-                            <div class="theme-preview default">預設主題</div>
-                            <div class="theme-name">預設</div>
-                            <div class="theme-description">經典原始風格</div>
+                    <h3>介面主題</h3>
+                    <p style="color:var(--polrx-text-muted, #64748b); margin-bottom: 12px;">選擇偏好的視覺主題，點擊後會立即預覽並綁定至你的帳號。</p>
+                    <div class="polrx-theme-grid">
+                        @foreach ($available_themes as $themeKey => $themeMeta)
+                        <div class="polrx-theme-card {{ ($user_theme === $themeKey) ? 'is-active' : '' }}"
+                             data-theme="{{ $themeKey }}"
+                             role="button"
+                             tabindex="0"
+                             aria-pressed="{{ ($user_theme === $themeKey) ? 'true' : 'false' }}">
+                            <div class="polrx-theme-swatches">
+                                @foreach ($themeMeta['swatches'] as $hex)
+                                <span class="polrx-theme-swatch" style="background-color: {{ $hex }};"></span>
+                                @endforeach
+                            </div>
+                            <div class="polrx-theme-title-row">
+                                <span class="polrx-theme-title">{{ $themeMeta['name'] }}</span>
+                                <span class="polrx-theme-badge">使用中</span>
+                            </div>
+                            <div class="polrx-theme-desc">{{ $themeMeta['description'] }}</div>
                         </div>
-                        <div class="theme-option {{($user_theme == 'dark-tech') ? 'active' : ''}}" data-theme="dark-tech">
-                            <div class="theme-preview dark-tech">霓虹夜幕</div>
-                            <div class="theme-name">霓虹夜幕</div>
-                            <div class="theme-description">黑底霓虹控制台感</div>
-                        </div>
-                        <div class="theme-option {{($user_theme == 'blue-purple') ? 'active' : ''}}" data-theme="blue-purple">
-                            <div class="theme-preview blue-purple">紙感鼠尾草</div>
-                            <div class="theme-name">紙感鼠尾草</div>
-                            <div class="theme-description">暖白編輯感與鼠尾草點綴</div>
-                        </div>
-                        <div class="theme-option {{($user_theme == 'soft-pastel') ? 'active' : ''}}" data-theme="soft-pastel">
-                            <div class="theme-preview soft-pastel">柔和粉彩</div>
-                            <div class="theme-name">柔和粉彩</div>
-                            <div class="theme-description">溫柔舒適色調</div>
-                        </div>
+                        @endforeach
                     </div>
                 </div>
 
@@ -179,8 +177,8 @@
 
                 <p>這裡提供 API 金鑰與開發文件。</p>
                 <p>
-                    文件：
-                    <a href='http://docs.polr.me/en/latest/developer-guide/api/'>http://docs.polr.me/en/latest/developer-guide/api/</a>
+                    專案與文件：
+                    <a href='https://github.com/tommy1616/polrX' target='_blank' rel='noopener noreferrer'>https://github.com/tommy1616/polrX</a>
                 </p>
 
                 <h4>API 金鑰：</h4>

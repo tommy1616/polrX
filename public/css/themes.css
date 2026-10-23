@@ -1,147 +1,683 @@
 /* ==========================================================================
-   polrX Theme System — Clean CSS Custom Property Architecture
+   polrX Unified Theme & Surface System
+   3-Tier Surface Architecture:
+     Tier 0: --polrx-bg          (Page Canvas)
+     Tier 1: --polrx-surface     (Primary Cards: Jumbotron, Admin Panel, Sidebar, Auth/About Cards)
+     Tier 2: --polrx-surface-alt (Nested Sub-Cards: Wells, Theme Cards, Table Headers, Code, Secondary Buttons)
    ========================================================================== */
 
 :root,
 html[data-theme="default"] {
-    --polrx-bg: #f8fafc;
+    color-scheme: light;
+    --polrx-bg: #f1f5f9;
     --polrx-surface: #ffffff;
-    --polrx-surface-alt: #f1f5f9;
+    --polrx-surface-alt: #f8fafc;
+    --polrx-surface-hover: #eef2f6;
     --polrx-border: #e2e8f0;
+    --polrx-border-strong: #cbd5e1;
     --polrx-text: #1e293b;
     --polrx-text-muted: #64748b;
     --polrx-heading: #0f172a;
-    --polrx-primary: #18bc9c;
-    --polrx-primary-hover: #128f76;
-    --polrx-primary-soft: rgba(24, 188, 156, 0.12);
-    --polrx-nav-bg: #2c3e50;
-    --polrx-nav-text: #ffffff;
+    --polrx-primary: #10b981;
+    --polrx-primary-hover: #059669;
+    --polrx-primary-soft: rgba(16, 185, 129, 0.14);
+    --polrx-danger: #ef4444;
+    --polrx-danger-hover: #dc2626;
+    --polrx-warning: #f59e0b;
+    --polrx-warning-hover: #d97706;
+    --polrx-nav-bg: #0f172a;
+    --polrx-nav-border: #1e293b;
+    --polrx-nav-text: #f8fafc;
+    --polrx-nav-muted: #94a3b8;
     --polrx-input-bg: #ffffff;
-    --polrx-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
+    --polrx-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
 }
 
 html[data-theme="midnight"] {
-    --polrx-bg: #0f172a;
-    --polrx-surface: #1e293b;
-    --polrx-surface-alt: #162032;
-    --polrx-border: #334155;
+    color-scheme: dark;
+    --polrx-bg: #0b1120;
+    --polrx-surface: #151f32;
+    --polrx-surface-alt: #1e293b;
+    --polrx-surface-hover: #26354d;
+    --polrx-border: #293548;
+    --polrx-border-strong: #3b4c66;
     --polrx-text: #e2e8f0;
     --polrx-text-muted: #94a3b8;
     --polrx-heading: #f8fafc;
     --polrx-primary: #6366f1;
     --polrx-primary-hover: #4f46e5;
-    --polrx-primary-soft: rgba(99, 102, 241, 0.18);
-    --polrx-nav-bg: #090d16;
-    --polrx-nav-text: #f1f5f9;
+    --polrx-primary-soft: rgba(99, 102, 241, 0.22);
+    --polrx-danger: #ef4444;
+    --polrx-danger-hover: #dc2626;
+    --polrx-warning: #f59e0b;
+    --polrx-warning-hover: #d97706;
+    --polrx-nav-bg: #070b14;
+    --polrx-nav-border: #1e293b;
+    --polrx-nav-text: #f8fafc;
+    --polrx-nav-muted: #94a3b8;
     --polrx-input-bg: #0f172a;
-    --polrx-shadow: 0 10px 28px rgba(2, 6, 23, 0.45);
+    --polrx-shadow: 0 12px 32px -4px rgba(2, 6, 23, 0.55);
 }
 
 html[data-theme="ocean"] {
-    --polrx-bg: #f0f7ff;
+    color-scheme: light;
+    --polrx-bg: #eef6ff;
     --polrx-surface: #ffffff;
-    --polrx-surface-alt: #e6f2ff;
-    --polrx-border: #bae0fd;
+    --polrx-surface-alt: #f4f9ff;
+    --polrx-surface-hover: #e6f1fe;
+    --polrx-border: #cfe4fd;
+    --polrx-border-strong: #9fc7f8;
     --polrx-text: #0f2942;
     --polrx-text-muted: #4b6a88;
-    --polrx-heading: #082038;
+    --polrx-heading: #07192b;
     --polrx-primary: #0284c7;
     --polrx-primary-hover: #0369a1;
-    --polrx-primary-soft: rgba(2, 132, 199, 0.12);
-    --polrx-nav-bg: #0c4a6e;
+    --polrx-primary-soft: rgba(2, 132, 199, 0.15);
+    --polrx-danger: #e11d48;
+    --polrx-danger-hover: #be123c;
+    --polrx-warning: #d97706;
+    --polrx-warning-hover: #b45309;
+    --polrx-nav-bg: #082f49;
+    --polrx-nav-border: #0c4a6e;
     --polrx-nav-text: #f0f9ff;
+    --polrx-nav-muted: #bae6fd;
     --polrx-input-bg: #ffffff;
-    --polrx-shadow: 0 8px 24px rgba(12, 74, 110, 0.08);
+    --polrx-shadow: 0 8px 26px -4px rgba(8, 47, 73, 0.08);
 }
 
 html[data-theme="warm-sand"] {
-    --polrx-bg: #faf6f0;
-    --polrx-surface: #ffffff;
-    --polrx-surface-alt: #f3ece1;
-    --polrx-border: #e4d8c8;
-    --polrx-text: #2d241e;
-    --polrx-text-muted: #6e5d4f;
-    --polrx-heading: #1f1812;
+    color-scheme: light;
+    --polrx-bg: #f6f1ea;
+    --polrx-surface: #fffdfa;
+    --polrx-surface-alt: #f4ede2;
+    --polrx-surface-hover: #ebe1d2;
+    --polrx-border: #e2d5c4;
+    --polrx-border-strong: #cbb89f;
+    --polrx-text: #2c221b;
+    --polrx-text-muted: #6e5c4e;
+    --polrx-heading: #1c140f;
     --polrx-primary: #c26d38;
     --polrx-primary-hover: #a35627;
-    --polrx-primary-soft: rgba(194, 109, 56, 0.13);
-    --polrx-nav-bg: #3b2d23;
+    --polrx-primary-soft: rgba(194, 109, 56, 0.16);
+    --polrx-danger: #dc2626;
+    --polrx-danger-hover: #b91c1c;
+    --polrx-warning: #d97706;
+    --polrx-warning-hover: #b45309;
+    --polrx-nav-bg: #291f19;
+    --polrx-nav-border: #3d2f26;
     --polrx-nav-text: #fdfaf6;
-    --polrx-input-bg: #fffdf9;
-    --polrx-shadow: 0 8px 24px rgba(59, 45, 35, 0.08);
+    --polrx-nav-muted: #d6c7b8;
+    --polrx-input-bg: #ffffff;
+    --polrx-shadow: 0 8px 26px -4px rgba(44, 34, 27, 0.08);
 }
 
-/* Apply theme variables when non-default theme is active */
-html[data-theme]:not([data-theme="default"]) body {
-    background-color: var(--polrx-bg);
-    color: var(--polrx-text);
+/* ==========================================================================
+   Tier 0: Page Canvas & Base Layout Reset
+   ========================================================================== */
+body {
+    background-color: var(--polrx-bg) !important;
+    color: var(--polrx-text) !important;
+    padding-top: 64px !important;
     transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-html[data-theme]:not([data-theme="default"]) .navbar,
-html[data-theme]:not([data-theme="default"]) .navbar-default {
+/* .content-div is ONLY a layout wrapper, NOT a visual box unless .jumbotron */
+.content-div {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.content-div::after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+@media (min-width: 768px) {
+    .content-div-padding {
+        padding-top: 32px !important;
+        padding-bottom: 48px !important;
+    }
+}
+
+/* ==========================================================================
+   Top Navigation Bar
+   ========================================================================== */
+.navbar,
+.navbar-default {
     background-color: var(--polrx-nav-bg) !important;
-    border-color: var(--polrx-border);
+    border: none !important;
+    border-bottom: 1px solid var(--polrx-nav-border) !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+    padding: 0 20px;
 }
 
-html[data-theme]:not([data-theme="default"]) .navbar-brand,
-html[data-theme]:not([data-theme="default"]) .navbar-nav > li > a {
+.navbar .navbar-brand {
     color: var(--polrx-nav-text) !important;
+    font-weight: 700;
+    letter-spacing: 0.01em;
 }
 
-html[data-theme]:not([data-theme="default"]) .content-div,
-html[data-theme]:not([data-theme="default"]) .tab-content,
-html[data-theme]:not([data-theme="default"]) .well,
-html[data-theme]:not([data-theme="default"]) .modal-content,
-html[data-theme]:not([data-theme="default"]) .dropdown-menu {
+.navbar .navbar-nav > li > a {
+    color: var(--polrx-nav-muted) !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    text-transform: none !important;
+    transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.navbar .navbar-nav > li > a:hover,
+.navbar .navbar-nav > li > a:focus,
+.navbar .navbar-nav > .open > a,
+.navbar .navbar-nav > .open > a:hover,
+.navbar .navbar-nav > .open > a:focus {
+    color: var(--polrx-nav-text) !important;
+    background-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+.dropdown-menu {
     background-color: var(--polrx-surface) !important;
     color: var(--polrx-text) !important;
     border: 1px solid var(--polrx-border) !important;
-    box-shadow: var(--polrx-shadow);
-    border-radius: 12px;
+    border-radius: 12px !important;
+    box-shadow: var(--polrx-shadow) !important;
+    padding: 8px !important;
 }
 
-html[data-theme]:not([data-theme="default"]) h1,
-html[data-theme]:not([data-theme="default"]) h2,
-html[data-theme]:not([data-theme="default"]) h3,
-html[data-theme]:not([data-theme="default"]) h4 {
+.dropdown-menu > li > a {
+    color: var(--polrx-text) !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    text-transform: none !important;
+    border-radius: 8px;
+    padding: 8px 14px !important;
+}
+
+.dropdown-menu > li > a:hover,
+.dropdown-menu > li > a:focus {
+    background-color: var(--polrx-surface-alt) !important;
+    color: var(--polrx-primary) !important;
+}
+
+.login-dropdown-menu {
+    padding: 18px !important;
+    min-width: 280px;
+}
+
+.login-dropdown-menu h2 {
+    margin-top: 0;
+    margin-bottom: 14px;
+    font-size: 18px;
+}
+
+/* ==========================================================================
+   Tier 1: Primary Cards (Home Hero, Admin Panel, Standalone Page Cards, Modals)
+   ========================================================================== */
+.content-div.jumbotron,
+.polrx-page-card,
+.tab-content,
+.modal-content {
+    background-color: var(--polrx-surface) !important;
+    color: var(--polrx-text) !important;
+    border: 1px solid var(--polrx-border) !important;
+    border-radius: 16px !important;
+    box-shadow: var(--polrx-shadow) !important;
+}
+
+.content-div.jumbotron {
+    padding: 52px 44px !important;
+    max-width: 820px;
+    margin: 20px auto 0 !important;
+}
+
+.content-div.jumbotron .title {
+    margin-top: 0;
+    margin-bottom: 28px;
+    font-size: 40px;
+    font-weight: 700;
+    color: var(--polrx-heading) !important;
+}
+
+.polrx-page-card {
+    padding: 36px 40px;
+    max-width: 820px;
+    margin: 12px auto 0;
+}
+
+.polrx-auth-card {
+    max-width: 440px;
+    text-align: center;
+}
+
+.polrx-auth-card .login-field {
+    width: 100% !important;
+    margin-bottom: 14px;
+}
+
+.polrx-auth-card .login-submit {
+    width: 100% !important;
+    margin-top: 4px;
+}
+
+.polrx-about-header {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+}
+
+/* ==========================================================================
+   Admin Layout: Sidebar Card + Main Tab Card
+   ========================================================================== */
+.admin-layout-row {
+    margin-top: 0;
+}
+
+.admin-nav {
+    background-color: var(--polrx-surface) !important;
+    border: 1px solid var(--polrx-border) !important;
+    border-radius: 14px !important;
+    padding: 10px !important;
+    box-shadow: var(--polrx-shadow) !important;
+    margin-bottom: 20px;
+}
+
+.admin-nav-item {
+    margin-bottom: 4px !important;
+}
+
+.admin-nav-item:last-child {
+    margin-bottom: 0 !important;
+}
+
+.admin-nav > li > a {
+    color: var(--polrx-text-muted) !important;
+    border: 1px solid transparent !important;
+    border-radius: 10px !important;
+    padding: 10px 16px !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    text-transform: none !important;
+    outline: none !important;
+}
+
+.admin-nav > li:not(.active) > a:focus {
+    background-color: transparent !important;
+    border-color: transparent !important;
+    color: var(--polrx-text-muted) !important;
+}
+
+.admin-nav > li:not(.active) > a:hover {
+    background-color: var(--polrx-surface-alt) !important;
+    border-color: transparent !important;
+    color: var(--polrx-heading) !important;
+}
+
+.admin-nav > li.active > a,
+.admin-nav > li.active > a:hover,
+.admin-nav > li.active > a:focus {
+    background-color: var(--polrx-primary) !important;
+    border-color: transparent !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px var(--polrx-primary-soft);
+}
+
+.tab-content {
+    padding: 32px 36px !important;
+    min-height: 420px;
+}
+
+.tab-pane > h2:first-child,
+.tab-pane > h3:first-child {
+    margin-top: 0 !important;
+    margin-bottom: 16px;
+}
+
+/* ==========================================================================
+   Tier 2: Recessed / Nested Sub-Cards (.well, .polrx-subcard, Code, Dividers)
+   ========================================================================== */
+.well,
+.polrx-subcard {
+    background-color: var(--polrx-surface-alt) !important;
+    color: var(--polrx-text) !important;
+    border: 1px solid var(--polrx-border) !important;
+    border-radius: 12px !important;
+    padding: 22px 24px !important;
+    box-shadow: none !important;
+    margin-bottom: 16px;
+}
+
+.polrx-divider,
+hr {
+    border: 0;
+    border-top: 1px solid var(--polrx-border) !important;
+    margin: 32px 0 !important;
+}
+
+.polrx-muted,
+.text-muted {
+    color: var(--polrx-text-muted) !important;
+}
+
+.polrx-form-narrow {
+    max-width: 420px;
+}
+
+.polrx-field-label {
+    display: block;
+    font-weight: 600;
+    font-size: 14px;
     color: var(--polrx-heading);
+    margin-bottom: 6px;
 }
 
-html[data-theme]:not([data-theme="default"]) a:not(.btn) {
+.polrx-status-pill {
+    display: inline-block;
+    padding: 2px 10px;
+    font-size: 12px;
+    font-weight: 700;
+    border-radius: 999px;
+    background-color: var(--polrx-primary-soft);
     color: var(--polrx-primary);
 }
 
-html[data-theme]:not([data-theme="default"]) .form-control,
-html[data-theme]:not([data-theme="default"]) input[type="search"],
-html[data-theme]:not([data-theme="default"]) select {
+.polrx-qr-box {
+    width: 188px;
+    min-height: 188px;
+    padding: 12px;
+    background: #ffffff;
+    border: 1px solid var(--polrx-border);
+    border-radius: 12px;
+}
+
+code,
+.polrx-code-block {
+    background-color: var(--polrx-surface-alt) !important;
+    color: var(--polrx-primary) !important;
+    border: 1px solid var(--polrx-border);
+    border-radius: 6px;
+    padding: 3px 7px;
+}
+
+.polrx-code-block {
+    display: block;
+    padding: 12px 14px;
+    background-color: var(--polrx-input-bg) !important;
+    color: var(--polrx-heading) !important;
+    border-radius: 8px;
+    word-break: break-all;
+}
+
+/* ==========================================================================
+   Typography & Links
+   ========================================================================== */
+h1, h2, h3, h4, h5, h6 {
+    color: var(--polrx-heading) !important;
+}
+
+a:not(.btn) {
+    color: var(--polrx-primary);
+}
+
+a:not(.btn):hover {
+    color: var(--polrx-primary-hover);
+}
+
+.site-url-field {
+    color: var(--polrx-primary) !important;
+    font-weight: 600;
+}
+
+/* ==========================================================================
+   Form Controls & Inputs
+   ========================================================================== */
+.form-control,
+input[type="search"],
+select {
     background-color: var(--polrx-input-bg) !important;
     color: var(--polrx-text) !important;
     border: 1px solid var(--polrx-border) !important;
-    border-radius: 8px;
+    border-radius: 9px !important;
+    box-shadow: none !important;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-html[data-theme]:not([data-theme="default"]) .admin-nav > li > a {
+.form-control::placeholder {
+    color: var(--polrx-text-muted) !important;
+    opacity: 0.75;
+}
+
+.form-control:focus,
+input[type="search"]:focus,
+select:focus {
+    border-color: var(--polrx-primary) !important;
+    box-shadow: 0 0 0 3px var(--polrx-primary-soft) !important;
+    outline: none !important;
+}
+
+.form-control[disabled],
+.form-control[readonly],
+fieldset[disabled] .form-control {
+    background-color: var(--polrx-surface-alt) !important;
+    color: var(--polrx-text-muted) !important;
+    border-color: var(--polrx-border) !important;
+    opacity: 1;
+}
+
+.input-group-addon {
+    background-color: var(--polrx-surface-alt) !important;
     color: var(--polrx-text) !important;
-    border-radius: 8px;
+    border: 1px solid var(--polrx-border) !important;
+    border-radius: 0 9px 9px 0 !important;
 }
 
-html[data-theme]:not([data-theme="default"]) .admin-nav > li.active > a,
-html[data-theme]:not([data-theme="default"]) .admin-nav > li > a:hover {
+.input-group .form-control:first-child {
+    border-radius: 9px 0 0 9px !important;
+}
+
+/* ==========================================================================
+   Cohesive Buttons (Unified with Theme Palette)
+   ========================================================================== */
+.btn {
+    border-radius: 9px !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    text-transform: none !important;
+    padding: 9px 18px;
+    transition: all 0.15s ease !important;
+}
+
+.btn-sm,
+.btn-group-sm > .btn {
+    font-size: 13px !important;
+    padding: 5px 12px !important;
+}
+
+.btn-xs,
+.btn-group-xs > .btn {
+    font-size: 12px !important;
+    padding: 3px 9px !important;
+}
+
+.btn-primary,
+.btn-info,
+.btn-success,
+#shorten {
     background-color: var(--polrx-primary) !important;
+    border: 1px solid var(--polrx-primary) !important;
     color: #ffffff !important;
 }
 
-html[data-theme]:not([data-theme="default"]) table.dataTable,
-html[data-theme]:not([data-theme="default"]) .table > thead > tr > th,
-html[data-theme]:not([data-theme="default"]) .table > tbody > tr > td {
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-info:hover,
+.btn-info:focus,
+.btn-success:hover,
+.btn-success:focus,
+#shorten:hover,
+#shorten:focus {
+    background-color: var(--polrx-primary-hover) !important;
+    border-color: var(--polrx-primary-hover) !important;
+    color: #ffffff !important;
+}
+
+/* Secondary / Options button on index & neutral actions */
+.btn-default,
+#show-link-options {
+    background-color: var(--polrx-surface-alt) !important;
+    border: 1px solid var(--polrx-border-strong) !important;
+    color: var(--polrx-text) !important;
+}
+
+.btn-default:hover,
+.btn-default:focus,
+#show-link-options:hover,
+#show-link-options:focus {
+    background-color: var(--polrx-surface-hover) !important;
+    border-color: var(--polrx-primary) !important;
+    color: var(--polrx-heading) !important;
+}
+
+/* Table action buttons (Disable / Delete) */
+.btn-warning:not(#show-link-options) {
+    background-color: var(--polrx-warning) !important;
+    border: 1px solid var(--polrx-warning) !important;
+    color: #ffffff !important;
+}
+
+.btn-warning:not(#show-link-options):hover {
+    background-color: var(--polrx-warning-hover) !important;
+    border-color: var(--polrx-warning-hover) !important;
+}
+
+.btn-danger {
+    background-color: var(--polrx-danger) !important;
+    border: 1px solid var(--polrx-danger) !important;
+    color: #ffffff !important;
+}
+
+.btn-danger:hover,
+.btn-danger:focus {
+    background-color: var(--polrx-danger-hover) !important;
+    border-color: var(--polrx-danger-hover) !important;
+}
+
+/* ==========================================================================
+   DataTables & Pagination (Zero White-Box Artifacts)
+   ========================================================================== */
+div.dataTables_wrapper {
+    margin-bottom: 24px;
+}
+
+div.dataTables_wrapper div.dataTables_length label,
+div.dataTables_wrapper div.dataTables_filter label,
+div.dataTables_wrapper div.dataTables_info {
+    color: var(--polrx-text-muted) !important;
+    font-weight: 500;
+}
+
+div.dataTables_wrapper div.dataTables_filter input {
+    padding: 6px 12px;
+    height: 34px;
+}
+
+div.dataTables_wrapper div.dataTables_length select {
+    padding: 4px 8px;
+    height: 34px;
+    margin: 0 4px;
+}
+
+div.dataTables_wrapper div.dataTables_processing {
+    background-color: var(--polrx-surface-alt) !important;
+    color: var(--polrx-text) !important;
+    border: 1px solid var(--polrx-border-strong) !important;
+    border-radius: 10px !important;
+    box-shadow: var(--polrx-shadow) !important;
+    font-weight: 600;
+    z-index: 10;
+}
+
+table.dataTable {
+    border-collapse: collapse !important;
+    margin-top: 12px !important;
+    margin-bottom: 14px !important;
+    border-bottom: 1px solid var(--polrx-border) !important;
+}
+
+table.dataTable > thead > tr > th,
+.table > thead > tr > th {
+    background-color: var(--polrx-surface-alt) !important;
+    color: var(--polrx-heading) !important;
+    border-bottom: 1px solid var(--polrx-border-strong) !important;
+    border-top: 1px solid var(--polrx-border) !important;
+    padding: 12px 14px !important;
+    font-weight: 600;
+}
+
+table.dataTable > tbody > tr > td,
+.table > tbody > tr > td {
     background-color: transparent !important;
     color: var(--polrx-text) !important;
+    border-top: 1px solid var(--polrx-border) !important;
+    padding: 12px 14px !important;
+    vertical-align: middle !important;
+}
+
+.table-hover > tbody > tr:hover > td {
+    background-color: var(--polrx-surface-alt) !important;
+}
+
+.pagination > li > a,
+.pagination > li > span {
+    background-color: var(--polrx-surface-alt) !important;
+    border: 1px solid var(--polrx-border) !important;
+    color: var(--polrx-text) !important;
+    margin-left: 4px;
+    border-radius: 8px !important;
+}
+
+.pagination > li > a:hover,
+.pagination > li > a:focus {
+    background-color: var(--polrx-surface-hover) !important;
+    border-color: var(--polrx-primary) !important;
+    color: var(--polrx-heading) !important;
+}
+
+.pagination > .active > a,
+.pagination > .active > span,
+.pagination > .active > a:hover,
+.pagination > .active > span:hover,
+.pagination > .active > a:focus,
+.pagination > .active > span:focus {
+    background-color: var(--polrx-primary) !important;
+    border-color: var(--polrx-primary) !important;
+    color: #ffffff !important;
+}
+
+.pagination > .disabled > span,
+.pagination > .disabled > span:hover,
+.pagination > .disabled > span:focus,
+.pagination > .disabled > a,
+.pagination > .disabled > a:hover,
+.pagination > .disabled > a:focus {
+    background-color: var(--polrx-surface) !important;
+    border-color: var(--polrx-border) !important;
+    color: var(--polrx-text-muted) !important;
+    opacity: 0.5;
+}
+
+/* Modals */
+.modal-header,
+.modal-footer {
     border-color: var(--polrx-border) !important;
 }
 
-html[data-theme]:not([data-theme="default"]) .table-hover > tbody > tr:hover > td {
-    background-color: var(--polrx-surface-alt) !important;
+.modal-header .close {
+    color: var(--polrx-text) !important;
+    opacity: 0.7;
 }
 
 /* ==========================================================================
@@ -149,7 +685,7 @@ html[data-theme]:not([data-theme="default"]) .table-hover > tbody > tr:hover > t
    ========================================================================== */
 .polrx-theme-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 16px;
     margin-top: 14px;
 }
@@ -160,22 +696,24 @@ html[data-theme]:not([data-theme="default"]) .table-hover > tbody > tr:hover > t
     flex-direction: column;
     padding: 16px;
     border-radius: 12px;
-    border: 2px solid var(--polrx-border, #e2e8f0);
-    background-color: var(--polrx-surface, #ffffff);
+    border: 2px solid var(--polrx-border);
+    background-color: var(--polrx-surface-alt);
     cursor: pointer;
-    transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
     user-select: none;
 }
 
 .polrx-theme-card:hover {
     transform: translateY(-2px);
-    border-color: var(--polrx-primary, #18bc9c);
-    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+    background-color: var(--polrx-surface);
+    border-color: var(--polrx-primary);
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.12);
 }
 
 .polrx-theme-card.is-active {
-    border-color: var(--polrx-primary, #18bc9c);
-    box-shadow: 0 0 0 3px var(--polrx-primary-soft, rgba(24, 188, 156, 0.16));
+    background-color: var(--polrx-surface);
+    border-color: var(--polrx-primary);
+    box-shadow: 0 0 0 3px var(--polrx-primary-soft);
 }
 
 .polrx-theme-swatches {
@@ -183,7 +721,7 @@ html[data-theme]:not([data-theme="default"]) .table-hover > tbody > tr:hover > t
     height: 38px;
     border-radius: 8px;
     overflow: hidden;
-    border: 1px solid rgba(128, 128, 128, 0.2);
+    border: 1px solid rgba(128, 128, 128, 0.22);
     margin-bottom: 12px;
 }
 
@@ -202,7 +740,7 @@ html[data-theme]:not([data-theme="default"]) .table-hover > tbody > tr:hover > t
 .polrx-theme-title {
     font-weight: 700;
     font-size: 15px;
-    color: var(--polrx-heading, #0f172a);
+    color: var(--polrx-heading);
 }
 
 .polrx-theme-badge {
@@ -211,7 +749,7 @@ html[data-theme]:not([data-theme="default"]) .table-hover > tbody > tr:hover > t
     font-weight: 600;
     padding: 2px 8px;
     border-radius: 999px;
-    background-color: var(--polrx-primary, #18bc9c);
+    background-color: var(--polrx-primary);
     color: #ffffff;
 }
 
@@ -221,6 +759,6 @@ html[data-theme]:not([data-theme="default"]) .table-hover > tbody > tr:hover > t
 
 .polrx-theme-desc {
     font-size: 13px;
-    color: var(--polrx-text-muted, #64748b);
-    line-height: 1.4;
+    color: var(--polrx-text-muted);
+    line-height: 1.45;
 }

@@ -6,14 +6,13 @@
 
 @section('content')
 <div class="center-text">
-    <h1>登入</h1><br/><br/>
-    <div class="col-md-3"></div>
-    <div class="col-md-6">
+    <div class="polrx-page-card polrx-auth-card">
+        <h2 style="margin-top: 0; margin-bottom: 24px;">登入</h2>
         <form action="login" method="POST">
             <input type="text" placeholder="帳號" name="username" class="form-control login-field" />
             <input type="password" placeholder="密碼" name="password" class="form-control login-field" />
             <input type="hidden" name='_token' value='{{csrf_token()}}' />
-            <input type="submit" value="登入" class="login-submit btn btn-success" />
+            <input type="submit" value="登入" class="login-submit btn btn-primary" />
 
             <p class='login-prompts'>
             @if (env('POLR_ALLOW_ACCT_CREATION') == true)
@@ -26,6 +25,5 @@
             </p>
         </form>
     </div>
-    <div class="col-md-3"></div>
-</div
+</div>
 @endsection

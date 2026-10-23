@@ -1,13 +1,13 @@
 @extends('layouts.base')
 
 @section('css')
-<link rel='stylesheet' href='/css/themes.css'>
 <link rel='stylesheet' href='/css/admin.css'>
 <link rel='stylesheet' href='/css/datatables.min.css'>
 @endsection
 
 @section('content')
 <div ng-controller="AdminCtrl" class="ng-root">
+    <div class="row admin-layout-row">
     <div class='col-md-2'>
         <ul class='nav nav-pills nav-stacked admin-nav' role='tablist'>
             <li role='presentation' aria-controls="home" class='admin-nav-item active'><a href='#home'>首頁</a></li>
@@ -27,10 +27,11 @@
         <div class="tab-content">
             <div role="tabpanel" class="tab-pane active" id="home">
                 <h2>歡迎使用 {{env('APP_NAME')}} 後台</h2>
-                <p>請使用左側選單管理你的短網址、帳號與設定。</p>
+                <p class="polrx-muted">請使用左側選單管理你的短網址、帳號與設定。</p>
             </div>
 
             <div role="tabpanel" class="tab-pane" id="links">
+                <h3>我的連結</h3>
                 @include('snippets.link_table', [
                     'table_id' => 'user_links_table'
                 ])
@@ -38,18 +39,20 @@
 
             <div role="tabpanel" class="tab-pane" id="settings">
                 <h3>修改密碼</h3>
-                <form action='/admin/action/change_password' method='POST'>
-                    目前密碼： <input class="form-control password-box" type='password' name='current_password' />
-                    新密碼： <input class="form-control password-box" type='password' name='new_password' />
+                <form action='/admin/action/change_password' method='POST' class="polrx-form-narrow">
+                    <label class="polrx-field-label">目前密碼</label>
+                    <input class="form-control password-box" type='password' name='current_password' />
+                    <label class="polrx-field-label">新密碼</label>
+                    <input class="form-control password-box" type='password' name='new_password' />
                     <input type="hidden" name='_token' value='{{csrf_token()}}' />
-                    <input type='submit' class='btn btn-success change-password-btn' value='更新密碼'/>
+                    <input type='submit' class='btn btn-primary change-password-btn' value='更新密碼'/>
                 </form>
 
-                <hr style="margin: 36px 0 28px;">
+                <hr class="polrx-divider">
 
                 <div class="theme-selector">
                     <h3>介面主題</h3>
-                    <p style="color:var(--polrx-text-muted, #64748b); margin-bottom: 12px;">選擇偏好的視覺主題，點擊後會立即預覽並綁定至你的帳號。</p>
+                    <p class="polrx-muted" style="margin-bottom: 14px;">選擇偏好的視覺主題，點擊後會立即套用並綁定至你的帳號。</p>
                     <div class="polrx-theme-grid">
                         @foreach ($available_themes as $themeKey => $themeMeta)
                         <div class="polrx-theme-card {{ ($user_theme === $themeKey) ? 'is-active' : '' }}"
@@ -72,42 +75,42 @@
                     </div>
                 </div>
 
-                <hr style="margin: 36px 0 28px;">
+                <hr class="polrx-divider">
 
                 <h3>登入兩步驟驗證（TOTP）</h3>
                 @if ($totp_enabled)
-                    <div class="well" style="background:#f7fbf3; border-color:#d8e7c2;">
-                        <p style="margin-bottom: 8px;"><strong>目前狀態：</strong> 已啟用</p>
-                        <p style="color:#666; margin-bottom: 18px;">之後登入時，輸入帳號密碼後還需要再輸入一次驗證器的 6 碼驗證碼。</p>
-                        <form action='/admin/action/totp/disable' method='POST' style="max-width: 420px;">
-                            <label style="display:block; margin-bottom: 8px;">目前密碼：</label>
+                    <div class="well polrx-subcard">
+                        <p style="margin-bottom: 8px;"><strong>目前狀態：</strong> <span class="polrx-status-pill">已啟用</span></p>
+                        <p class="polrx-muted" style="margin-bottom: 18px;">之後登入時，輸入帳號密碼後還需要再輸入一次驗證器的 6 碼驗證碼。</p>
+                        <form action='/admin/action/totp/disable' method='POST' class="polrx-form-narrow">
+                            <label class="polrx-field-label">目前密碼</label>
                             <input class="form-control password-box" type='password' name='disable_totp_current_password' />
                             <input type="hidden" name='_token' value='{{csrf_token()}}' />
                             <input type='submit' class='btn btn-danger' style="margin-top: 14px;" value='停用 2FA'/>
                         </form>
                     </div>
                 @elseif ($pending_totp_secret)
-                    <div class="well">
-                        <p style="margin-bottom: 12px;">使用 Google Authenticator、1Password、Authy 或其他支援 TOTP 的驗證器掃描下方 QR code。</p>
+                    <div class="well polrx-subcard">
+                        <p style="margin-bottom: 14px;">使用 Google Authenticator、1Password、Authy 或其他支援 TOTP 的驗證器掃描下方 QR code。</p>
                         <div style="display:flex; flex-wrap:wrap; gap: 24px; align-items:flex-start; margin-bottom: 16px;">
                             <div>
-                                <div id="totp-qrcode" style="width: 190px; min-height: 190px; padding: 12px; background: #fff; border: 1px solid #e4e4e4; border-radius: 10px;"></div>
+                                <div id="totp-qrcode" class="polrx-qr-box"></div>
                             </div>
                             <div style="flex:1; min-width: 260px;">
                                 <p style="margin-bottom: 10px;"><strong>帳號標籤：</strong> {{$totp_label}}</p>
                                 <p style="margin-bottom: 10px;"><strong>手動輸入金鑰：</strong></p>
-                                <code style="display:block; padding: 12px 14px; background:#f6f8fa; border-radius: 8px; word-break: break-all;">{{$pending_totp_secret}}</code>
+                                <code class="polrx-code-block">{{$pending_totp_secret}}</code>
                             </div>
                         </div>
 
-                        <form action='/admin/action/totp/confirm' method='POST' style="max-width: 460px;">
-                            <label style="display:block; margin-bottom: 8px;">目前密碼：</label>
+                        <form action='/admin/action/totp/confirm' method='POST' class="polrx-form-narrow">
+                            <label class="polrx-field-label">目前密碼</label>
                             <input class="form-control password-box" type='password' name='totp_current_password' />
-                            <label style="display:block; margin: 14px 0 8px;">驗證器上的 6 碼驗證碼：</label>
+                            <label class="polrx-field-label" style="margin-top: 12px;">驗證器上的 6 碼驗證碼</label>
                             <input class="form-control password-box" type='text' inputmode='numeric' maxlength='6' name='totp_code' placeholder='123456' />
                             <input type="hidden" name='_token' value='{{csrf_token()}}' />
                             <div style="margin-top: 14px; display:flex; gap:10px; flex-wrap:wrap;">
-                                <input type='submit' class='btn btn-success' value='確認啟用 2FA'/>
+                                <input type='submit' class='btn btn-primary' value='確認啟用 2FA'/>
                             </div>
                         </form>
 
@@ -117,8 +120,8 @@
                         </form>
                     </div>
                 @else
-                    <div class="well">
-                        <p style="margin-bottom: 10px;">啟用後，登入時除了帳號密碼，還需要再輸入驗證器 App 的 6 碼 TOTP 驗證碼。</p>
+                    <div class="well polrx-subcard">
+                        <p class="polrx-muted" style="margin-bottom: 14px;">啟用後，登入時除了帳號密碼，還需要再輸入驗證器 App 的 6 碼 TOTP 驗證碼。</p>
                         <form action='/admin/action/totp/start' method='POST'>
                             <input type="hidden" name='_token' value='{{csrf_token()}}' />
                             <input type='submit' class='btn btn-primary' value='開始綁定 2FA'/>
@@ -203,6 +206,7 @@
             </div>
             @endif
         </div>
+    </div>
     </div>
 
     <div class="angular-modals">

@@ -111,6 +111,58 @@ html[data-theme="warm-sand"] {
     --polrx-shadow: 0 8px 26px -4px rgba(44, 34, 27, 0.08);
 }
 
+/* 5. 森系翠綠 (Emerald Forest) */
+html[data-theme="forest"] {
+    --polrx-bg: #eef6f1;
+    --polrx-surface: #ffffff;
+    --polrx-surface-alt: #f4faf6;
+    --polrx-surface-hover: #e4f1e9;
+    --polrx-text: #1c3128;
+    --polrx-text-muted: #4e6b5e;
+    --polrx-heading: #0d2118;
+    --polrx-border: #cde2d5;
+    --polrx-border-strong: #add0bb;
+    --polrx-primary: #059669;
+    --polrx-primary-hover: #047857;
+    --polrx-primary-soft: rgba(5, 150, 105, 0.15);
+    --polrx-danger: #dc2626;
+    --polrx-danger-hover: #b91c1c;
+    --polrx-warning: #d97706;
+    --polrx-warning-hover: #b45309;
+    --polrx-nav-bg: #0b291e;
+    --polrx-nav-border: #143d2e;
+    --polrx-nav-text: #f0fdf4;
+    --polrx-nav-muted: #a7f3d0;
+    --polrx-input-bg: #ffffff;
+    --polrx-shadow: 0 8px 26px -4px rgba(11, 41, 30, 0.08);
+}
+
+/* 6. 櫻花粉霧 (Rose Quartz) */
+html[data-theme="rose"] {
+    --polrx-bg: #fdf2f5;
+    --polrx-surface: #ffffff;
+    --polrx-surface-alt: #fef7f9;
+    --polrx-surface-hover: #fce7ed;
+    --polrx-text: #3b1c28;
+    --polrx-text-muted: #7a4b5d;
+    --polrx-heading: #260d17;
+    --polrx-border: #f3d1dc;
+    --polrx-border-strong: #e9b3c5;
+    --polrx-primary: #e11d48;
+    --polrx-primary-hover: #be123c;
+    --polrx-primary-soft: rgba(225, 29, 72, 0.14);
+    --polrx-danger: #dc2626;
+    --polrx-danger-hover: #b91c1c;
+    --polrx-warning: #d97706;
+    --polrx-warning-hover: #b45309;
+    --polrx-nav-bg: #2d121c;
+    --polrx-nav-border: #451d2b;
+    --polrx-nav-text: #fff1f2;
+    --polrx-nav-muted: #fecdd3;
+    --polrx-input-bg: #ffffff;
+    --polrx-shadow: 0 8px 26px -4px rgba(45, 18, 28, 0.08);
+}
+
 /* ==========================================================================
    Tier 0: Page Canvas & Base Layout Reset
    ========================================================================== */
@@ -710,9 +762,21 @@ table.dataTable > tbody > tr > td,
    ========================================================================== */
 .polrx-theme-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
     gap: 16px;
     margin-top: 14px;
+}
+
+@media (max-width: 991px) {
+    .polrx-theme-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 540px) {
+    .polrx-theme-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 .polrx-theme-card {

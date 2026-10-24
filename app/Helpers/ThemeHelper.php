@@ -25,6 +25,16 @@ class ThemeHelper
             'description' => '溫潤紙感米白與琥珀棕點綴',
             'swatches' => ['#f6f1ea', '#fffdfa', '#291f19', '#c26d38'],
         ],
+        'forest' => [
+            'name' => '森系翠綠',
+            'description' => '自然松針薄荷底色與翡翠綠重點色',
+            'swatches' => ['#eef6f1', '#ffffff', '#0b291e', '#059669'],
+        ],
+        'rose' => [
+            'name' => '櫻花粉霧',
+            'description' => '溫柔櫻花粉霧底色與玫瑰莓果重點色',
+            'swatches' => ['#fdf2f5', '#ffffff', '#2d121c', '#e11d48'],
+        ],
     ];
 
     public const LEGACY_MAP = [

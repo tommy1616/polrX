@@ -229,6 +229,14 @@ return [
             'name' => 'Warm Sand',
             'desc' => 'Soft paper-ivory surface with amber accents',
         ],
+        'forest' => [
+            'name' => 'Emerald Forest',
+            'desc' => 'Natural sage-mint canvas with emerald highlights',
+        ],
+        'rose' => [
+            'name' => 'Rose Quartz',
+            'desc' => 'Soft sakura blush surface with rose-berry accents',
+        ],
     ],
 
     'messages' => [

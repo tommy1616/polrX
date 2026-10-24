@@ -60,7 +60,7 @@ polrX solves these problems with a complete modernization:
 
 1. **Modern Laravel 13 + PHP 8.4 / 8.5 Stack**: Replaces deprecated Lumen 5.1 and abandoned dependencies, featuring a built-in lightweight server-side DataTables engine (`DataTablesHelper`).
 2. **Full Internationalization (i18n) Architecture**: Built-in support for **Traditional Chinese (Taiwan)**, **English**, **Japanese**, and **Korean**. Switch languages anytime via the top navbar dropdown, the dedicated **Language (`#language`)** tab in the Admin Dashboard, or the `?lang=` query parameter.
-3. **3-Tier Surface Theme Engine**: 6 curated themes (**Default**, **Midnight**, **Ocean**, **Forest**, **Rose**, **Nord**) built on CSS custom properties (`--polrx-bg`, `--polrx-surface`, `--polrx-surface-alt`) with instant zero-reload switching and per-user persistence.
+3. **3-Tier Surface Theme Engine**: 6 curated themes (**Classic Light**, **Midnight Slate**, **Ocean Breeze**, **Warm Sand**, **Emerald Forest**, **Rose Quartz**) built on CSS custom properties (`--polrx-bg`, `--polrx-surface`, `--polrx-surface-alt`) with instant zero-reload switching and per-user persistence.
 4. **Dedicated 2FA TOTP & Security Hardening**:
    - Dedicated **Two-Factor Authentication (`#totp`)** tab in the Admin sidebar supporting RFC 6238 TOTP apps (1Password, Google Authenticator, Authy) with local SVG QR Code generation.
    - Constant-time API key verification (`hash_equals`), strict column whitelisting in `DataTablesHelper`, XSS-safe JSON encoding in click analytics, session ID regeneration on login, and rate limiting across authentication endpoints.
@@ -100,12 +100,12 @@ polrX ships with complete translation dictionaries in [`lang/`](lang/), covering
 
 Logged-in users can switch between 6 built-in themes under **Settings (`#settings`)** (powered by [`app/Helpers/ThemeHelper.php`](app/Helpers/ThemeHelper.php) and [`public/css/themes.css`](public/css/themes.css)):
 
-- **Default (`default`)**: Warm ivory and classic sage green
-- **Midnight (`midnight`)**: Deep slate dark mode with indigo neon accents
-- **Ocean (`ocean`)**: Deep navy dark mode with cyan glow
-- **Forest (`forest`)**: Natural pine green and warm cream
-- **Rose (`rose`)**: Soft sakura blush and berry tones
-- **Nord (`nord`)**: Minimalist Arctic frost dark palette
+- **Classic Light (`default`)**: Clean and crisp default light interface
+- **Midnight Slate (`midnight`)**: Low-glare dark mode with indigo accents
+- **Ocean Breeze (`ocean`)**: Refreshing ice-blue canvas with cyan highlights
+- **Warm Sand (`warm-sand`)**: Soft paper-ivory surface with amber accents
+- **Emerald Forest (`forest`)**: Natural sage-mint canvas with emerald highlights
+- **Rose Quartz (`rose`)**: Soft sakura blush surface with rose-berry accents
 
 ## Requirements
 

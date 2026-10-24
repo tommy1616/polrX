@@ -108,7 +108,8 @@ class LinkController extends Controller {
             ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
             ->header('Pragma', 'no-cache')
             ->header('Referrer-Policy', 'no-referrer')
-            ->header('X-Robots-Tag', 'noindex, nofollow');
+            ->header('X-Robots-Tag', 'noindex, nofollow')
+            ->header('X-Polr-Stateless-Redirect', '1');
     }
 
 }

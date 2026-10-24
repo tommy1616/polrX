@@ -76,18 +76,7 @@ Route::prefix('api/v2')->middleware('api.polr')->group(function () {
     Route::match(['get', 'post'], 'data/link', [ApiAnalyticsController::class, 'lookupLinkStats'])->name('api_link_analytics');
 });
 
-$statelessRedirectMiddleware = [
-    \Illuminate\Cookie\Middleware\EncryptCookies::class,
-    \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
-    \Illuminate\Session\Middleware\StartSession::class,
-    \Illuminate\View\Middleware\ShareErrorsFromSession::class,
-    \Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class,
-    \App\Http\Middleware\SetLocaleMiddleware::class,
-];
-
 Route::get('/{short_url}', [LinkController::class, 'performRedirect'])
-    ->withoutMiddleware($statelessRedirectMiddleware)
     ->middleware('throttle:120,1');
 Route::get('/{short_url}/{secret_key}', [LinkController::class, 'performRedirect'])
-    ->withoutMiddleware($statelessRedirectMiddleware)
     ->middleware('throttle:30,1');

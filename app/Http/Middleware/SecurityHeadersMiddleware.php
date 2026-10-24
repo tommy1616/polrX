@@ -17,6 +17,13 @@ class SecurityHeadersMiddleware
         /** @var Response $response */
         $response = $next($request);
 
+        if ($response->headers->has('X-Polr-Stateless-Redirect')) {
+            $response->headers->remove('X-Polr-Stateless-Redirect');
+            $response->headers->remove('Set-Cookie');
+            $response->headers->set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+            $response->headers->set('Referrer-Policy', 'no-referrer');
+        }
+
         $response->headers->remove('X-Powered-By');
         $response->headers->set('X-Frame-Options', 'DENY', false);
         $response->headers->set('X-Content-Type-Options', 'nosniff', false);

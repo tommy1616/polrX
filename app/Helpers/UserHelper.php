@@ -36,11 +36,17 @@ class UserHelper {
     }
 
     public static function checkCredentials($username, $password) {
+        if (!is_string($username) || !is_string($password) || $username === '' || $password === '') {
+            return false;
+        }
+
         $user = User::where('active', 1)
             ->where('username', $username)
             ->first();
 
         if ($user == null) {
+            // Perform a dummy bcrypt check to prevent username enumeration via timing side-channel
+            Hash::check($password, '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi');
             return false;
         }
 

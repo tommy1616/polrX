@@ -260,7 +260,7 @@ class SetupController extends Controller
 
         $rawBase = (int) ($input['setting:base'] ?? 32);
         $stBase = in_array($rawBase, [32, 62], true) ? $rawBase : 32;
-        $stPseudorEnding = ($input['setting:pseudor_ending'] ?? 'false') === 'true' ? 'true' : 'false';
+        $stPseudorEnding = ($input['setting:pseudor_ending'] ?? 'true') === 'false' ? 'false' : 'true';
         $stAdvAnalytics = ($input['setting:adv_analytics'] ?? 'true') === 'false' ? 'false' : 'true';
         $stAutoApiKey = ($input['setting:auto_api_key'] ?? 'false') === 'true' ? 'true' : 'false';
         $stAnonApi = ($input['setting:anon_api'] ?? 'false') === 'true' ? 'true' : 'false';

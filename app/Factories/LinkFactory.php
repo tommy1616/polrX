@@ -48,9 +48,11 @@ class LinkFactory {
                 maximum length allowed.');
         }
 
-        if (! preg_match('/^https?:\/\//i', (string) $long_url)) {
+        if (! is_string($long_url) || ! preg_match('/\Ahttps?:\/\//i', $long_url)) {
             throw new \Exception('Only HTTP and HTTPS URLs are allowed.');
         }
+
+        LinkHelper::validateSafeDestinationUrl($long_url);
 
         $is_already_short = LinkHelper::checkIfAlreadyShortened($long_url);
 
@@ -109,7 +111,7 @@ class LinkFactory {
         }
 
         if ($is_secret) {
-            $rand_bytes_num = intval(env('POLR_SECRET_BYTES'));
+            $rand_bytes_num = max(16, intval(env('POLR_SECRET_BYTES', 16)));
             $secret_key = CryptoHelper::generateRandomHex($rand_bytes_num);
             $link->secret_key = $secret_key;
         }

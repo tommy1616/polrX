@@ -27,8 +27,8 @@ class LinkController extends Controller {
 
         // Validate URL form data
         $this->validate($request, [
-            'link-url' => 'required|url',
-            'custom-ending' => 'alpha_dash'
+            'link-url' => 'required|string|url',
+            'custom-ending' => 'nullable|string|alpha_dash|max:64'
         ]);
 
         $long_url = $request->input('link-url');
@@ -98,8 +98,17 @@ class LinkController extends Controller {
             // Record advanced analytics if option is enabled
             ClickHelper::recordClick($link, $request);
         }
-        // Redirect to final destination
-        return redirect()->to($long_url, 301);
+        // Redirect to final destination (default 302 with no-store so disabled/deleted links take effect immediately)
+        $statusCode = (int) env('POLR_REDIRECT_STATUS', 302);
+        if (! in_array($statusCode, [301, 302, 307, 308], true)) {
+            $statusCode = 302;
+        }
+
+        return redirect()->away($long_url, $statusCode)
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+            ->header('Pragma', 'no-cache')
+            ->header('Referrer-Policy', 'no-referrer')
+            ->header('X-Robots-Tag', 'noindex, nofollow');
     }
 
 }

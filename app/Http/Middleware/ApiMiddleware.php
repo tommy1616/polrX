@@ -10,10 +10,13 @@ use App\Exceptions\Api\ApiException;
 
 class ApiMiddleware {
     protected static function getApiUserInfo(Request $request) {
-        $api_key = $request->input('key');
-        $response_type = $request->input('response_type');
+        $api_key = $request->bearerToken()
+            ?: $request->header('X-API-Key')
+            ?: $request->header('X-API-KEY')
+            ?: $request->input('key');
+        $response_type = is_string($request->input('response_type')) ? $request->input('response_type') : 'json';
 
-        if (!$api_key) {
+        if (!is_string($api_key) || $api_key === '') {
             // no API key provided; check whether anonymous API is enabled
 
             if (env('SETTING_ANON_API')) {
@@ -24,7 +27,8 @@ class ApiMiddleware {
             }
             $user = (object) [
                 'username' => $username,
-                'anonymous' => true
+                'anonymous' => true,
+                'api_quota' => (int) env('SETTING_ANON_API_QUOTA', 10),
             ];
         }
         else {
@@ -33,11 +37,21 @@ class ApiMiddleware {
                 ->where('api_active', 1)
                 ->first();
 
-            if (!$user) {
+            if (!$user || !hash_equals((string) $user->api_key, $api_key)) {
                 throw new ApiException('AUTH_ERROR', 'Authentication token invalid.', 401, $response_type);
             }
             $username = $user->username;
             $user->anonymous = false;
+        }
+
+        $quota = isset($user->api_quota) ? (int) $user->api_quota : 60;
+        if ($quota >= 0) {
+            $maxPerMinute = max(1, $quota);
+            $rateKey = 'api_quota:' . $username;
+            if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts($rateKey, $maxPerMinute)) {
+                throw new ApiException('QUOTA_EXCEEDED', 'Quota exceeded.', 429, $response_type);
+            }
+            \Illuminate\Support\Facades\RateLimiter::hit($rateKey, 60);
         }
 
         $api_limit_reached = ApiHelper::checkUserApiQuota($username);

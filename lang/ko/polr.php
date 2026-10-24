@@ -94,6 +94,7 @@ return [
             'home' => '홈',
             'links' => '링크',
             'settings' => '설정',
+            'theme' => '테마',
             'totp' => '2단계 인증',
             'language' => '언어',
             'admin' => '관리',

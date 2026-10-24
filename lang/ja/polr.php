@@ -94,6 +94,7 @@ return [
             'home' => 'ホーム',
             'links' => 'リンク',
             'settings' => '設定',
+            'theme' => 'テーマ',
             'totp' => '2段階認証',
             'language' => '言語',
             'admin' => '管理',

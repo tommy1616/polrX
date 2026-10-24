@@ -1,2 +1,7 @@
 User-agent: *
-Disallow:
+Disallow: /admin
+Disallow: /api/
+Disallow: /setup
+Disallow: /login
+Disallow: /signup
+Disallow: /lost_password

@@ -22,6 +22,7 @@
             @else
                 <li class="visible-xs"><a href="{{ route('admin') }}">{{ __('polr.nav.dashboard') }}</a></li>
                 <li class="visible-xs"><a href="{{ route('admin') }}#settings">{{ __('polr.nav.settings') }}</a></li>
+                <li class="visible-xs"><a href="{{ route('admin') }}#theme">{{ __('polr.admin.nav.theme') }}</a></li>
                 <li class="visible-xs"><a href="{{ route('admin') }}#totp">{{ __('polr.admin.nav.totp') }}</a></li>
                 <li class="visible-xs"><a href="{{ route('admin') }}#language">{{ __('polr.admin.nav.language') }}</a></li>
                 <li class="visible-xs"><a href="{{ route('logout') }}">{{ __('polr.nav.logout') }}</a></li>
@@ -75,6 +76,7 @@
                         <ul class="dropdown-menu pull-right" role="menu" aria-labelledby="dropdownMenu">
                             <li><a tabindex="-1" href="{{ route('admin') }}">{{ __('polr.nav.dashboard') }}</a></li>
                             <li><a tabindex="-1" href="{{ route('admin') }}#settings">{{ __('polr.nav.settings') }}</a></li>
+                            <li><a tabindex="-1" href="{{ route('admin') }}#theme">{{ __('polr.admin.nav.theme') }}</a></li>
                             <li><a tabindex="-1" href="{{ route('admin') }}#totp">{{ __('polr.admin.nav.totp') }}</a></li>
                             <li><a tabindex="-1" href="{{ route('admin') }}#language">{{ __('polr.admin.nav.language') }}</a></li>
                             <li><a tabindex="-1" href="{{ route('logout') }}">{{ __('polr.nav.logout') }}</a></li>

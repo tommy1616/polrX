@@ -13,6 +13,7 @@
             <li role='presentation' aria-controls="home" class='admin-nav-item active'><a href='#home'>{{ __('polr.admin.nav.home') }}</a></li>
             <li role='presentation' aria-controls="links" class='admin-nav-item'><a href='#links'>{{ __('polr.admin.nav.links') }}</a></li>
             <li role='presentation' aria-controls="settings" class='admin-nav-item'><a href='#settings'>{{ __('polr.admin.nav.settings') }}</a></li>
+            <li role='presentation' aria-controls="theme" class='admin-nav-item'><a href='#theme'>{{ __('polr.admin.nav.theme') }}</a></li>
             <li role='presentation' aria-controls="totp" class='admin-nav-item'><a href='#totp'>{{ __('polr.admin.nav.totp') }}</a></li>
             <li role='presentation' aria-controls="language" class='admin-nav-item'><a href='#language'>{{ __('polr.admin.nav.language') }}</a></li>
 
@@ -49,9 +50,9 @@
                     <input type="hidden" name='_token' value='{{csrf_token()}}' />
                     <input type='submit' class='btn btn-primary change-password-btn' value='{{ __('polr.admin.settings.update_password_btn') }}'/>
                 </form>
+            </div>
 
-                <hr class="polrx-divider">
-
+            <div role="tabpanel" class="tab-pane" id="theme">
                 <div class="theme-selector">
                     <h3>{{ __('polr.admin.settings.theme_title') }}</h3>
                     <p class="polrx-muted" style="margin-bottom: 14px;">{{ __('polr.admin.settings.theme_desc') }}</p>

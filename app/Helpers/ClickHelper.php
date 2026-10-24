@@ -57,18 +57,24 @@ class ClickHelper
 
     public static function recordClick(Link $link, Request $request): bool
     {
-        $ip = $request->ip();
-        $referer = $request->server('HTTP_REFERER');
+        try {
+            $ip = $request->ip();
+            $referer = $request->server('HTTP_REFERER');
+            $refererHost = self::getHost(is_string($referer) ? $referer : null);
+            $userAgent = $request->server('HTTP_USER_AGENT');
 
-        $click = new Click;
-        $click->link_id = $link->id;
-        $click->ip = $ip;
-        $click->country = self::getCountry($ip);
-        $click->referer = $referer;
-        $click->referer_host = self::getHost($referer);
-        $click->user_agent = $request->server('HTTP_USER_AGENT');
-        $click->save();
+            $click = new Click;
+            $click->link_id = $link->id;
+            $click->ip = is_string($ip) ? substr($ip, 0, 64) : '';
+            $click->country = self::getCountry(is_string($ip) ? $ip : null);
+            $click->referer = is_string($referer) ? mb_substr($referer, 0, 250) : null;
+            $click->referer_host = is_string($refererHost) ? mb_substr($refererHost, 0, 250) : null;
+            $click->user_agent = is_string($userAgent) ? mb_substr($userAgent, 0, 250) : null;
+            $click->save();
 
-        return true;
+            return true;
+        } catch (\Throwable) {
+            return false;
+        }
     }
 }

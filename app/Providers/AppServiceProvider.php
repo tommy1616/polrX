@@ -43,7 +43,20 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        if (str_starts_with((string) env('APP_PROTOCOL', ''), 'https')) {
+            \Illuminate\Support\Facades\URL::forceScheme('https');
+            config([
+                'session.secure' => true,
+                'session.http_only' => true,
+                'session.same_site' => 'lax',
+            ]);
+        }
+
         View::composer('*', function ($view) {
+            if (! array_key_exists('errors', $view->getData())) {
+                $view->with('errors', session('errors') ?: new \Illuminate\Support\ViewErrorBag());
+            }
+
             $theme = session('theme');
             $req = app()->bound('request') ? request() : null;
             $queryLocale = $req ? $req->query('lang') : null;

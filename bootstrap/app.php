@@ -48,6 +48,10 @@ return Application::configure(basePath: $basePath)
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->trustProxies(at: '*');
+
+        $middleware->append(\App\Http\Middleware\SecurityHeadersMiddleware::class);
+
         $middleware->web(append: [
             \App\Http\Middleware\SetLocaleMiddleware::class,
         ]);

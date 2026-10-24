@@ -94,6 +94,7 @@ return [
             'home' => 'Overview',
             'links' => 'Links',
             'settings' => 'Settings',
+            'theme' => 'Theme',
             'totp' => '2FA Security',
             'language' => 'Language',
             'admin' => 'Admin',

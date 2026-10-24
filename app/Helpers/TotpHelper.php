@@ -22,9 +22,18 @@ class TotpHelper {
             return false;
         }
 
-        $timeSlice = floor(time() / 30);
+        $timeSlice = (int) floor(time() / 30);
         for ($offset = -$window; $offset <= $window; $offset++) {
-            if (hash_equals(self::generateCode($secret, $timeSlice + $offset), $code)) {
+            $candidateSlice = $timeSlice + $offset;
+            if (hash_equals(self::generateCode($secret, $candidateSlice), $code)) {
+                $replayKey = 'totp_used:' . hash('sha256', (string) $secret) . ':' . $candidateSlice;
+                try {
+                    if (!\Illuminate\Support\Facades\Cache::add($replayKey, 1, 120)) {
+                        return false;
+                    }
+                } catch (\Throwable) {
+                    // Fallback if cache store is unavailable
+                }
                 return true;
             }
         }

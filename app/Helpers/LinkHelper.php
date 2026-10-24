@@ -4,6 +4,41 @@ use App\Models\Link;
 use App\Helpers\BaseHelper;
 
 class LinkHelper {
+    static public function validateSafeDestinationUrl($long_link) {
+        if (! is_string($long_link) || preg_match('/[\r\n]|%0[da]/i', $long_link)) {
+            throw new \Exception('Invalid destination URL.');
+        }
+
+        $parsed = @parse_url($long_link);
+        if (! is_array($parsed) || empty($parsed['scheme']) || empty($parsed['host'])) {
+            throw new \Exception('Invalid destination URL.');
+        }
+
+        if (! empty($parsed['user']) || ! empty($parsed['pass'])) {
+            throw new \Exception('URLs containing embedded credentials (@) are not allowed.');
+        }
+
+        $host = strtolower(trim($parsed['host'], '[]'));
+        if (
+            $host === 'localhost'
+            || str_ends_with($host, '.localhost')
+            || str_ends_with($host, '.local')
+            || str_ends_with($host, '.internal')
+            || $host === 'metadata.google.internal'
+            || $host === '169.254.169.254'
+        ) {
+            throw new \Exception('Private, loopback, or internal destination URLs are not allowed.');
+        }
+
+        if (filter_var($host, FILTER_VALIDATE_IP)) {
+            if (! filter_var($host, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+                throw new \Exception('Private, loopback, or reserved IP addresses are not allowed.');
+            }
+        }
+
+        return true;
+    }
+
     static public function checkIfAlreadyShortened($long_link) {
         /**
          * Provided a long link (string),
@@ -21,12 +56,24 @@ class LinkHelper {
             'ow.ly',
             'j.mp',
             't.co',
-            env('APP_ADDRESS')
         ];
 
+        $appAddress = strtolower(trim((string) parse_url('http://' . ltrim((string) env('APP_ADDRESS'), '/'), PHP_URL_HOST)));
+        if ($appAddress !== '') {
+            $shortener_domains[] = $appAddress;
+        }
+
+        $targetHost = strtolower((string) parse_url((string) $long_link, PHP_URL_HOST));
+        if ($targetHost === '') {
+            return false;
+        }
+
         foreach ($shortener_domains as $shortener_domain) {
-            $url_segment = ('://' . $shortener_domain);
-            if (strstr($long_link, $url_segment)) {
+            $shortener_domain = strtolower(trim((string) $shortener_domain));
+            if ($shortener_domain === '') {
+                continue;
+            }
+            if ($targetHost === $shortener_domain || str_ends_with($targetHost, '.' . $shortener_domain)) {
                 return true;
             }
         }
@@ -85,7 +132,10 @@ class LinkHelper {
     }
 
     static public function validateEnding($link_ending) {
-        $is_valid_ending = preg_match('/^[a-zA-Z0-9-_]+$/', $link_ending);
+        if (! is_string($link_ending)) {
+            return 0;
+        }
+        $is_valid_ending = preg_match('/\A[a-zA-Z0-9_-]{1,64}\z/', $link_ending);
         return $is_valid_ending;
     }
 
@@ -100,10 +150,11 @@ class LinkHelper {
 
         $pr_str = '';
         $in_use = true;
+        $length = max(5, (int) env('_PSEUDO_RANDOM_KEY_LENGTH', 7));
 
         while ($in_use) {
             // Generate a new string until the ending is not in use
-            $pr_str = \Illuminate\Support\Str::random(env('_PSEUDO_RANDOM_KEY_LENGTH'));
+            $pr_str = \Illuminate\Support\Str::random($length);
             $in_use = LinkHelper::linkExists($pr_str);
         }
 

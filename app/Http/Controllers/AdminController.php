@@ -64,10 +64,10 @@ class AdminController extends Controller
             return abort(404);
         }
 
-        $old_password = (string) $request->input('current_password', '');
-        $new_password = (string) $request->input('new_password', '');
+        $old_password = $request->input('current_password', '');
+        $new_password = $request->input('new_password', '');
 
-        if (trim($new_password) === '') {
+        if (! is_string($old_password) || ! is_string($new_password) || strlen(trim($new_password)) < 8) {
             return redirect(route('admin').'#settings')->with('error', __('polr.messages.password_empty'));
         }
 
@@ -80,6 +80,9 @@ class AdminController extends Controller
         $user = UserHelper::getUserByUsername($username);
         $user->password = Hash::make($new_password);
         $user->save();
+
+        $request->session()->regenerate();
+        $request->session()->put('auth_pw_hash', hash('sha256', (string) $user->password));
 
         return redirect(route('admin').'#settings')->with('success', __('polr.messages.password_updated'));
     }

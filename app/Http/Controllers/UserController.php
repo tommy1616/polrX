@@ -49,6 +49,10 @@ class UserController extends Controller {
         $username = $request->input('username');
         $password = $request->input('password');
 
+        if (!is_string($username) || !is_string($password)) {
+            return redirect('login')->with('error', __('polr.messages.login_failed'));
+        }
+
         $credentials_valid = UserHelper::checkCredentials($username, $password);
 
         if ($credentials_valid != false) {
@@ -69,6 +73,9 @@ class UserController extends Controller {
             $request->session()->regenerate();
             $request->session()->put('username', $username);
             $request->session()->put('role', $role);
+            if ($user) {
+                $request->session()->put('auth_pw_hash', hash('sha256', (string) $user->password));
+            }
             $request->session()->put('theme', ThemeHelper::normalize($user ? $user->theme : 'default'));
             if ($user && !empty($user->locale)) {
                 $request->session()->put('locale', \App\Helpers\LocaleHelper::normalize($user->locale));
@@ -105,6 +112,7 @@ class UserController extends Controller {
         $request->session()->regenerate();
         $request->session()->put('username', $verifiedUser);
         $request->session()->put('role', $verifiedRole);
+        $request->session()->put('auth_pw_hash', hash('sha256', (string) $user->password));
         $request->session()->put('theme', ThemeHelper::normalize($user->theme));
         if (!empty($user->locale)) {
             $request->session()->put('locale', \App\Helpers\LocaleHelper::normalize($user->locale));
@@ -133,9 +141,9 @@ class UserController extends Controller {
         }
 
         $this->validate($request, [
-            'username' => 'required|alpha_dash',
-            'password' => 'required',
-            'email' => 'required|email'
+            'username' => 'required|string|alpha_dash|max:64',
+            'password' => 'required|string|min:8',
+            'email' => 'required|string|email'
         ]);
 
         $username = $request->input('username');

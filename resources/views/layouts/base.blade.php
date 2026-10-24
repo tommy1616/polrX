@@ -27,7 +27,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
     <meta name="current-username" content="{{ session('username') ? session('username') : '' }}">
     <meta name="current-theme" content="{{ isset($user_theme) ? $user_theme : 'default' }}">
     <meta name="current-locale" content="{{ isset($user_locale) ? $user_locale : 'zh_TW' }}">
-    <meta name="generator" content="Polr {{env('POLR_VERSION')}}" />
     @yield('meta')
 
     @if (env('APP_STYLESHEET'))
@@ -100,7 +99,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
         toastr["success"](`{{ str_replace('`', '\\`', session('success')) }}`, `{{ __('polr.toast.success') }}`)
     @endif
 
-    @if (count($errors) > 0)
+    @if (isset($errors) && count($errors) > 0)
         @foreach ($errors->all() as $error)
             toastr["error"](`{{ str_replace('`', '\\`', $error) }}`, `{{ __('polr.toast.error') }}`)
         @endforeach

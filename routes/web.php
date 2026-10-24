@@ -19,7 +19,7 @@ if (env('POLR_ALLOW_ACCT_CREATION')) {
 }
 
 Route::get('/', [IndexController::class, 'showIndexPage'])->name('index');
-Route::get('/logout', [UserController::class, 'performLogoutUser'])->name('logout');
+Route::match(['get', 'post'], '/logout', [UserController::class, 'performLogoutUser'])->name('logout');
 Route::get('/login', [UserController::class, 'displayLoginPage'])->name('login');
 Route::post('/login', [UserController::class, 'performLogin'])->middleware('throttle:10,1')->name('plogin');
 Route::get('/login/totp', [UserController::class, 'displayTotpPage'])->name('login_totp');
@@ -47,12 +47,12 @@ Route::post('/setup', [SetupController::class, 'performSetup'])->name('psetup');
 Route::get('/setup/finish', [SetupController::class, 'finishSetup'])->name('setup_finish');
 
 Route::get('/admin/stats/{short_url}', [StatsController::class, 'displayStats']);
-Route::post('/shorten', [LinkController::class, 'performShorten'])->name('pshorten');
+Route::post('/shorten', [LinkController::class, 'performShorten'])->middleware('throttle:10,1')->name('pshorten');
 Route::post('/lost_password', [UserController::class, 'performSendPasswordResetCode'])->middleware('throttle:5,1')->name('plost_password');
-Route::post('/reset_password/{username}/{recovery_key}', [UserController::class, 'performPasswordReset'])->name('preset_password');
+Route::post('/reset_password/{username}/{recovery_key}', [UserController::class, 'performPasswordReset'])->middleware('throttle:5,1')->name('preset_password');
 
 Route::prefix('api/v2')->group(function () {
-    Route::post('link_avail_check', [AjaxController::class, 'checkLinkAvailability'])->name('api_link_check');
+    Route::post('link_avail_check', [AjaxController::class, 'checkLinkAvailability'])->middleware('throttle:30,1')->name('api_link_check');
     Route::post('admin/toggle_api_active', [AjaxController::class, 'toggleAPIActive'])->name('api_toggle_api_active');
     Route::post('admin/generate_new_api_key', [AjaxController::class, 'generateNewAPIKey'])->name('api_generate_new_api_key');
     Route::post('admin/edit_api_quota', [AjaxController::class, 'editAPIQuota'])->name('api_edit_quota');
@@ -76,5 +76,18 @@ Route::prefix('api/v2')->middleware('api.polr')->group(function () {
     Route::match(['get', 'post'], 'data/link', [ApiAnalyticsController::class, 'lookupLinkStats'])->name('api_link_analytics');
 });
 
-Route::get('/{short_url}', [LinkController::class, 'performRedirect']);
-Route::get('/{short_url}/{secret_key}', [LinkController::class, 'performRedirect']);
+$statelessRedirectMiddleware = [
+    \Illuminate\Cookie\Middleware\EncryptCookies::class,
+    \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
+    \Illuminate\Session\Middleware\StartSession::class,
+    \Illuminate\View\Middleware\ShareErrorsFromSession::class,
+    \Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class,
+    \App\Http\Middleware\SetLocaleMiddleware::class,
+];
+
+Route::get('/{short_url}', [LinkController::class, 'performRedirect'])
+    ->withoutMiddleware($statelessRedirectMiddleware)
+    ->middleware('throttle:120,1');
+Route::get('/{short_url}/{secret_key}', [LinkController::class, 'performRedirect'])
+    ->withoutMiddleware($statelessRedirectMiddleware)
+    ->middleware('throttle:30,1');

@@ -23,10 +23,12 @@ class ApiLinkController extends ApiController {
         $response_type = $request->input('response_type');
         $user = $request->user() ?: $request->attributes->get('user');
 
+        $rawUrl = is_string($request->input('url')) ? $request->input('url') : '';
         $validator = \Validator::make(array_merge([
-            'url' => str_replace(' ', '%20', $request->input('url'))
+            'url' => str_replace(' ', '%20', $rawUrl)
         ], $request->except('url')), [
-            'url' => 'required|url'
+            'url' => 'required|string|url',
+            'custom_ending' => 'nullable|string|alpha_dash|max:64',
         ]);
 
         if ($validator->fails()) {
@@ -57,17 +59,24 @@ class ApiLinkController extends ApiController {
             throw new ApiException('JSON_ONLY', 'Only JSON-encoded responses are available for this endpoint.', 401, $response_type);
         }
 
-        $links_array_raw_json = json_decode($request_data, true);
+        $links_array_raw_json = is_string($request_data) ? json_decode($request_data, true) : null;
 
-        if ($links_array_raw_json === null) {
-            throw new ApiException('INVALID_PARAMETERS', 'Invalid JSON.', 400, $response_type);
+        if (!is_array($links_array_raw_json) || !isset($links_array_raw_json['links']) || !is_array($links_array_raw_json['links'])) {
+            throw new ApiException('INVALID_PARAMETERS', 'Invalid JSON or missing links array.', 400, $response_type);
         }
 
         $links_array = $links_array_raw_json['links'];
+        if (count($links_array) > 100) {
+            throw new ApiException('INVALID_PARAMETERS', 'Bulk limit exceeded (maximum 100 links per request).', 400, $response_type);
+        }
 
         foreach ($links_array as $link) {
+            if (!is_array($link)) {
+                throw new ApiException('MISSING_PARAMETERS', 'Invalid or missing parameters.', 400, $response_type);
+            }
             $validator = \Validator::make($link, [
-                'url' => 'required|url'
+                'url' => 'required|string|url',
+                'custom_ending' => 'nullable|string|alpha_dash|max:64',
             ]);
 
             if ($validator->fails()) {
@@ -118,23 +127,22 @@ class ApiLinkController extends ApiController {
 
         $link = LinkHelper::linkExists($url_ending);
 
+        if (!$link) {
+            throw new ApiException('NOT_FOUND', 'Link not found.', 404, $response_type);
+        }
+
         if ($link['secret_key']) {
-            if ($url_key != $link['secret_key']) {
+            if (!is_string($url_key) || !hash_equals((string) $link['secret_key'], $url_key)) {
                 throw new ApiException('ACCESS_DENIED', 'Invalid URL code for secret URL.', 401, $response_type);
             }
         }
 
-        if ($link) {
-            return self::encodeResponse([
-                'long_url' => $link['long_url'],
-                'created_at' => $link['created_at'],
-                'clicks' => $link['clicks'],
-                'updated_at' => $link['updated_at'],
-                'created_at' => $link['created_at']
-            ], 'lookup', $response_type, $link['long_url']);
-        }
-        else {
-            throw new ApiException('NOT_FOUND', 'Link not found.', 404, $response_type);
-        }
+        return self::encodeResponse([
+            'long_url' => $link['long_url'],
+            'created_at' => $link['created_at'],
+            'clicks' => $link['clicks'],
+            'updated_at' => $link['updated_at'],
+            'created_at' => $link['created_at']
+        ], 'lookup', $response_type, $link['long_url']);
     }
 }

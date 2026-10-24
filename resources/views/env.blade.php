@@ -72,7 +72,7 @@ QUEUE_DRIVER=sync
 
 _API_KEY_LENGTH=15
 _ANALYTICS_MAX_DAYS_DIFF=365
-_PSEUDO_RANDOM_KEY_LENGTH=5
+_PSEUDO_RANDOM_KEY_LENGTH=7
 
 # Set to 32 or 62 -- do not touch after initial configuration
 POLR_BASE={!! $ST_BASE !!}
@@ -80,6 +80,6 @@ POLR_BASE={!! $ST_BASE !!}
 # Do not touch
 POLR_RELDATE="{!! env('VERSION_RELMONTH', 'Oct') !!} {!! env('VERSION_RELDAY', '24') !!}, {!! env('VERSION_RELYEAR', '2026') !!}"
 POLR_VERSION="{!! env('VERSION', '2.3.0') !!}"
-POLR_SECRET_BYTES=2
+POLR_SECRET_BYTES=16
 
 TMP_SETUP_AUTH_KEY="{!! $TMP_SETUP_AUTH_KEY !!}"

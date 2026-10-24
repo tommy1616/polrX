@@ -140,9 +140,9 @@ class AjaxController extends Controller
         self::ensureAdmin();
 
         $this->validate($request, [
-            'username' => 'required|alpha_dash|unique:users,username',
-            'user_password' => 'required|min:6',
-            'user_email' => 'required|email|unique:users,email',
+            'username' => 'required|string|alpha_dash|max:64|unique:users,username',
+            'user_password' => 'required|string|min:8',
+            'user_email' => 'required|string|email|unique:users,email',
         ]);
 
         $ip = $request->ip();
@@ -223,8 +223,14 @@ class AjaxController extends Controller
         $new_long_url = $request->input('new_long_url');
 
         $this->validate($request, [
-            'new_long_url' => ['required', 'url', 'regex:/^https?:\/\//i'],
+            'new_long_url' => ['required', 'string', 'url', 'regex:/\Ahttps?:\/\//i'],
         ]);
+
+        try {
+            LinkHelper::validateSafeDestinationUrl($new_long_url);
+        } catch (\Exception $e) {
+            abort(400, $e->getMessage());
+        }
 
         if (! $link) {
             abort(404, 'Link not found.');

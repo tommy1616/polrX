@@ -139,23 +139,32 @@ class AjaxController extends Controller
     {
         self::ensureAdmin();
 
+        $username = trim((string) $request->input('username', ''));
+        $user_password = (string) $request->input('user_password', '');
+        $user_email = trim((string) $request->input('user_email', ''));
+        $user_role = (string) $request->input('user_role', '');
+
+        $request->merge([
+            'username' => $username,
+            'user_email' => $user_email,
+        ]);
+
         $this->validate($request, [
             'username' => 'required|string|alpha_dash|max:64|unique:users,username',
-            'user_password' => 'required|string|min:8',
+            'user_password' => 'required|string|min:1',
             'user_email' => 'required|string|email|unique:users,email',
         ]);
 
         $ip = $request->ip();
-        $username = $request->input('username');
-        $user_password = $request->input('user_password');
-        $user_email = $request->input('user_email');
-        $user_role = (string) $request->input('user_role', '');
 
         if (! in_array($user_role, array_values(UserHelper::$USER_ROLES), true)) {
             $user_role = UserHelper::$USER_ROLES['default'];
         }
 
-        UserFactory::createUser($username, $user_email, $user_password, 1, $ip, false, 0, $user_role);
+        $api_active = env('SETTING_AUTO_API') ? 1 : 0;
+        $api_key = $api_active ? CryptoHelper::generateRandomHex((int) env('_API_KEY_LENGTH', 15)) : false;
+
+        UserFactory::createUser($username, $user_email, $user_password, 1, $ip, $api_key, $api_active, $user_role);
 
         return 'OK';
     }

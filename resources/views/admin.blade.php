@@ -179,9 +179,9 @@
                             <th></th>
                         </tr>
                         <tr id="new-user-form">
-                            <td><input type="text" class="form-control" ng-model="newUserParams.username"></td>
-                            <td><input type="password" class="form-control" ng-model="newUserParams.userPassword"></td>
-                            <td><input type="email" class="form-control" ng-model="newUserParams.userEmail"></td>
+                            <td><input type="text" class="form-control new-user-username" ng-model="newUserParams.username" autocomplete="off"></td>
+                            <td><input type="password" class="form-control new-user-password" ng-model="newUserParams.userPassword" autocomplete="new-password"></td>
+                            <td><input type="text" class="form-control new-user-email" ng-model="newUserParams.userEmail" autocomplete="off"></td>
                             <td>
                                 <select class="form-control new-user-role" ng-model="newUserParams.userRole">
                                     @foreach  ($user_roles as $role_text => $role_val)

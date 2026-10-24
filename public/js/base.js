@@ -47,9 +47,5 @@ $(function () {
     });
 });
 
-// Output helpful console message
-console.log('%cpolrX', 'font-size:5em;color:green');
-console.log('%cGitHub: https://github.com/tommy1616/polrX', 'color:blue');
-
 // Set up Angular module
 var polr = angular.module('polr',[]);

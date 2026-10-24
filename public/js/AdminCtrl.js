@@ -259,22 +259,42 @@ polr.controller('AdminCtrl', function($scope, $compile, $timeout) {
     };
 
     $scope.addNewUser = function($event) {
-        if (!$scope.checkNewUserFields()) {
+        var username = ($scope.newUserParams.username || $('.new-user-username').val() || '').trim();
+        var userPassword = $scope.newUserParams.userPassword || $('.new-user-password').val() || '';
+        var userEmail = ($scope.newUserParams.userEmail || $('.new-user-email').val() || '').trim();
+        var userRole = $scope.newUserParams.userRole || $('.new-user-role').val() || '';
+
+        if (!username || !userPassword || !userEmail) {
             toastr.error(jsMsg.fields_cannot_be_empty || 'Fields cannot be empty.', toastTitles.error);
             return false;
         }
 
         apiCall('admin/add_new_user', {
-            'username': $scope.newUserParams.username,
-            'user_password': $scope.newUserParams.userPassword,
-            'user_email': $scope.newUserParams.userEmail,
-            'user_role': $scope.newUserParams.userRole,
+            'username': username,
+            'user_password': userPassword,
+            'user_email': userEmail,
+            'user_role': userRole,
         }, function(result) {
             toastr.success(jsMsg.user_created || 'User created.', toastTitles.success);
             $('#new-user-form').clearForm();
+            $scope.newUserParams.username = '';
+            $scope.newUserParams.userPassword = '';
+            $scope.newUserParams.userEmail = '';
+            $scope.newUserParams.userRole = '';
             $scope.datatables['admin_users_table'].ajax.reload();
-        }, function () {
-            toastr.error(jsMsg.user_create_error || 'Error creating user.', toastTitles.error);
+        }, function (err) {
+            var detail = '';
+            if (err && err.responseJSON) {
+                if (err.responseJSON.errors) {
+                    var keys = Object.keys(err.responseJSON.errors);
+                    if (keys.length > 0 && err.responseJSON.errors[keys[0]].length > 0) {
+                        detail = ' (' + err.responseJSON.errors[keys[0]][0] + ')';
+                    }
+                } else if (err.responseJSON.message) {
+                    detail = ' (' + err.responseJSON.message + ')';
+                }
+            }
+            toastr.error((jsMsg.user_create_error || 'Error creating user.') + detail, toastTitles.error);
         });
     };
 

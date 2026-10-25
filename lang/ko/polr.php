@@ -45,6 +45,10 @@ return [
         'copy_tooltip' => '클립보드에 복사',
         'generate_qr' => 'QR 코드 생성',
         'shorten_another' => '다른 URL 단축하기',
+        'qr_style_branded' => '브랜드 도트',
+        'qr_style_rounded' => '미니멀 라운드',
+        'qr_style_classic' => '클래식',
+        'download_qr' => 'PNG 다운로드',
     ],
 
     'about' => [

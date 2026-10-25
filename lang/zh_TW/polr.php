@@ -45,6 +45,10 @@ return [
         'copy_tooltip' => '複製到剪貼簿',
         'generate_qr' => '產生 QR Code',
         'shorten_another' => '再縮一筆',
+        'qr_style_branded' => '品牌圓點',
+        'qr_style_rounded' => '流線極簡',
+        'qr_style_classic' => '經典高對比',
+        'download_qr' => '下載 PNG',
     ],
 
     'about' => [

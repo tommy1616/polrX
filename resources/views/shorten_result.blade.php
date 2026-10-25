@@ -18,7 +18,21 @@
         <a href='{{route('index')}}' class='btn btn-primary'>{{ __('polr.shorten_result.shorten_another') }}</a>
     </div>
 
-    <div class="qr-code-container"></div>
+    <div class="qr-code-panel" id="qr-code-panel" style="display: none;">
+        <div class="qr-style-switcher" role="group" aria-label="QR Code Style">
+            <button type="button" class="qr-style-pill is-active" data-qr-style="branded">{{ __('polr.shorten_result.qr_style_branded') }}</button>
+            <button type="button" class="qr-style-pill" data-qr-style="rounded">{{ __('polr.shorten_result.qr_style_rounded') }}</button>
+            <button type="button" class="qr-style-pill" data-qr-style="classic">{{ __('polr.shorten_result.qr_style_classic') }}</button>
+        </div>
+
+        <div class="qr-code-container" id="polrx-qr-stage"></div>
+
+        <div style="margin-top: 14px;">
+            <button type="button" id="download-qr-code" class="btn btn-default btn-sm">
+                <i class="fa fa-download" style="margin-right: 6px;"></i>{{ __('polr.shorten_result.download_qr') }}
+            </button>
+        </div>
+    </div>
 </div>
 @endsection
 

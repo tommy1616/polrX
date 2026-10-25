@@ -45,6 +45,10 @@ return [
         'copy_tooltip' => 'Copy to clipboard',
         'generate_qr' => 'Generate QR Code',
         'shorten_another' => 'Shorten Another',
+        'qr_style_branded' => 'Branded Dots',
+        'qr_style_rounded' => 'Minimal Rounded',
+        'qr_style_classic' => 'Classic Crisp',
+        'download_qr' => 'Download PNG',
     ],
 
     'about' => [

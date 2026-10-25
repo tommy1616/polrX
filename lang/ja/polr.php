@@ -45,6 +45,10 @@ return [
         'copy_tooltip' => 'クリップボードにコピー',
         'generate_qr' => 'QRコードを表示',
         'shorten_another' => '別のURLを短縮',
+        'qr_style_branded' => 'ブランドドット',
+        'qr_style_rounded' => 'ミニマル丸角',
+        'qr_style_classic' => 'クラシック',
+        'download_qr' => 'PNGを保存',
     ],
 
     'about' => [

@@ -51,7 +51,7 @@ function isFinderZone(row, col, count) {
 function isCenterLogoZone(row, col, count, style) {
     if (style !== 'branded') return false;
     var center = Math.floor(count / 2);
-    var half = 2; // 5x5 module zone in center
+    var half = 3; // 7x7 module zone in center for crisp polrX icon
     return (row >= center - half && row <= center + half && col >= center - half && col <= center + half);
 }
 
@@ -117,29 +117,34 @@ function buildStyledQrSvg(text, style) {
         }
     }
 
-    // 3. Center Branded Badge (5x5 module area) for 'branded' style
+    // 3. Center Branded Badge (exact polrX favicon.svg Option C icon!) for 'branded' style
     if (style === 'branded') {
-        var cStart = Math.floor(count / 2) - 2.35;
-        var badgeSize = 4.7;
-        var cx = count / 2;
-        var cy = count / 2;
+        var badgeSize = 6.2;
+        var cStart = (count - badgeSize) / 2;
+        var iconScale = (badgeSize / 128).toFixed(5);
 
-        // White cushion + colored squircle badge
+        // White quiet cushion around center icon
         parts.push(
-            '<rect x="' + (cStart - 0.35).toFixed(2) + '" y="' + (cStart - 0.35).toFixed(2) + '" width="' + (badgeSize + 0.7).toFixed(2) + '" height="' + (badgeSize + 0.7).toFixed(2) + '" rx="1.45" fill="#ffffff"/>'
-        );
-        parts.push(
-            '<rect x="' + cStart.toFixed(2) + '" y="' + cStart.toFixed(2) + '" width="' + badgeSize.toFixed(2) + '" height="' + badgeSize.toFixed(2) + '" rx="1.2" fill="' + colors.accentColor + '"/>'
+            '<rect x="' + (cStart - 0.45).toFixed(2) + '" y="' + (cStart - 0.45).toFixed(2) + '" width="' + (badgeSize + 0.9).toFixed(2) + '" height="' + (badgeSize + 0.9).toFixed(2) + '" rx="1.75" fill="#ffffff"/>'
         );
 
-        // Minimalist chain-link icon inside center badge (scaled from 24x24 viewBox to ~2.9 units)
-        var iconScale = (2.8 / 24).toFixed(4);
-        var iconTx = (cx - 1.4).toFixed(3);
-        var iconTy = (cy - 1.4).toFixed(3);
+        // Exact polrX Option C Icon (128x128 coordinate space scaled to badgeSize)
         parts.push(
-            '<g transform="translate(' + iconTx + ',' + iconTy + ') scale(' + iconScale + ')" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">' +
-                '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>' +
-                '<path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>' +
+            '<defs>' +
+                '<linearGradient id="polrxQrBg" x1="16" y1="12" x2="112" y2="116" gradientUnits="userSpaceOnUse">' +
+                    '<stop offset="0%" stop-color="#111827"/>' +
+                    '<stop offset="100%" stop-color="#090D16"/>' +
+                '</linearGradient>' +
+                '<linearGradient id="polrxQrStar" x1="32" y1="32" x2="96" y2="96" gradientUnits="userSpaceOnUse">' +
+                    '<stop offset="0%" stop-color="#34D399"/>' +
+                    '<stop offset="100%" stop-color="#10B981"/>' +
+                '</linearGradient>' +
+            '</defs>' +
+            '<g transform="translate(' + cStart.toFixed(3) + ',' + cStart.toFixed(3) + ') scale(' + iconScale + ')">' +
+                '<rect width="128" height="128" rx="30" fill="url(#polrxQrBg)"/>' +
+                '<path d="M46 30H38C29.163 30 22 37.163 22 46V82C22 90.837 29.163 98 38 98H46" fill="none" stroke="#475569" stroke-width="9" stroke-linecap="round"/>' +
+                '<path d="M82 30H90C98.837 30 106 37.163 106 46V82C106 90.837 98.837 98 90 98H82" fill="none" stroke="#475569" stroke-width="9" stroke-linecap="round"/>' +
+                '<path d="M64 26L72.5 55.5L102 64L72.5 72.5L64 102L55.5 72.5L26 64L55.5 55.5L64 26Z" fill="url(#polrxQrStar)"/>' +
             '</g>'
         );
     }

@@ -25,7 +25,7 @@
 
 > [!NOTE]
 > **polrX is an independent, community-maintained modernization fork and is not affiliated with the original Polr authors.**
-> Upstream [cydrobolt/polr](https://github.com/cydrobolt/polr) had its last release (`2.3.0b`) in January 2021 on deprecated Lumen 5.1 and EOL PHP 7.x. polrX upgrades the entire stack to modern Laravel 13 and PHP 8.4+, adding full internationalization (i18n), a 3-tier surface theme engine, dedicated Two-Factor Authentication (2FA TOTP), and comprehensive security hardening.
+> Upstream [cydrobolt/polr](https://github.com/cydrobolt/polr) had its last release (`2.3.0b`) in January 2021 on deprecated Lumen 5.1 and EOL PHP 7.x. polrX upgrades the entire stack to modern Laravel 13 and PHP 8.4+, adding full internationalization (i18n), a 3-tier surface theme engine, a built-in Vector QR Code Studio, dedicated Two-Factor Authentication (2FA TOTP), and red-team-grade security hardening.
 
 ---
 
@@ -36,6 +36,7 @@
 - [Features & Modernization Status](#features--modernization-status)
 - [Multi-Language Support (i18n)](#multi-language-support-i18n)
 - [Modern Theme System](#modern-theme-system)
+- [Vector QR Code Studio](#vector-qr-code-studio)
 - [Requirements](#requirements)
 - [Quick Installation](#quick-installation)
 - [Upgrading](#upgrading)
@@ -60,29 +61,35 @@ polrX solves these problems with a complete modernization:
 
 1. **Modern Laravel 13 + PHP 8.4 / 8.5 Stack**: Replaces deprecated Lumen 5.1 and abandoned dependencies, featuring a built-in lightweight server-side DataTables engine (`DataTablesHelper`).
 2. **Full Internationalization (i18n) Architecture**: Built-in support for **Traditional Chinese (Taiwan)**, **English**, **Japanese**, and **Korean**. Switch languages anytime via the top navbar dropdown, the dedicated **Language (`#language`)** tab in the Admin Dashboard, or the `?lang=` query parameter.
-3. **3-Tier Surface Theme Engine**: 6 curated themes (**Classic Light**, **Midnight Slate**, **Ocean Breeze**, **Warm Sand**, **Emerald Forest**, **Rose Quartz**) built on CSS custom properties (`--polrx-bg`, `--polrx-surface`, `--polrx-surface-alt`) with instant zero-reload switching and per-user persistence.
-4. **Dedicated 2FA TOTP & Security Hardening**:
-   - Dedicated **Two-Factor Authentication (`#totp`)** tab in the Admin sidebar supporting RFC 6238 TOTP apps (1Password, Google Authenticator, Authy) with local SVG QR Code generation.
-   - Constant-time API key verification (`hash_equals`), strict column whitelisting in `DataTablesHelper`, XSS-safe JSON encoding in click analytics, session ID regeneration on login, and rate limiting across authentication endpoints.
-5. **Drop-In Upgrade Compatibility**: Seamlessly migrates existing Polr 2.x databases via `php artisan migrate`.
+3. **3-Tier Surface Theme Engine**: Managed from its own dedicated **Theme (`#theme`)** tab in the Admin Dashboard sidebar, featuring 6 curated themes (**Classic Light**, **Midnight Slate**, **Ocean Breeze**, **Warm Sand**, **Emerald Forest**, **Rose Quartz**) with instant zero-reload switching and per-user persistence.
+4. **Custom Vector SVG QR Code Engine & Standalone QR Code Studio (`/qrcode`)**:
+   - Accessible directly from the top navbar (**QR Code Studio `/qrcode`**) as well as the shortened URL result page.
+   - Supports **5 payload types**: **Website URL**, **Plain Text**, **Wi-Fi Network**, **Email**, and **Phone Call / SMS**.
+   - Features **3 custom vector SVG styles** (**Branded Dots** with the embedded `polrX` center icon, **Minimal Rounded**, and **Classic Crisp**) with 1-click export to high-resolution `1024×1024` PNG or lossless `.svg`.
+5. **Dedicated 2FA TOTP & Red-Team Security Hardening**:
+   - Dedicated **Two-Factor Authentication (`#totp`)** tab in the Admin sidebar supporting RFC 6238 TOTP apps (1Password, Google Authenticator, Authy) with TOTP time-step replay protection.
+   - Constant-time API key verification (`hash_equals`), timing-safe user login verification (preventing username enumeration), SSRF & private IP / cloud metadata filtering, 128-bit cryptographic secret URL keys, stateless `302` short-link redirects (`Cache-Control: no-store` without session cookies), real-time session password-hash & role sync, and global security headers (`Strict-Transport-Security`, `X-Frame-Options: DENY`, `CSP frame-ancestors 'none'`).
+6. **Drop-In Upgrade Compatibility**: Seamlessly migrates existing Polr 2.x databases via `php artisan migrate`.
 
 ## Features & Modernization Status
 
 | Module | Status | Description |
 | :--- | :---: | :--- |
 | **Laravel 13 + PHP 8.4 / 8.5 Rewrite** | ✅ Done | Full Laravel routing, Middleware, Blade templates, and Eloquent ORM |
-| **Full i18n Multi-Language Architecture** | ✅ Done | Supports `zh_TW` (default), `en`, `ja`, and `ko` across views, controllers, JS, and modals |
-| **Dedicated 2FA (TOTP) Sidebar Tab** | ✅ Done | Dedicated `#totp` tab with local QR SVG generation and password-verified disable flow |
+| **Full i18n Multi-Language Architecture** | ✅ Done | Supports `zh_TW` (default), `en`, `ja`, and `ko` across installer, views, controllers, JS, and modals |
+| **5-Step Web Setup Wizard & CLI Installer** | ✅ Done | Auto-launches language-first web wizard when `.env` is missing, plus `./install.sh` CLI wizard |
+| **Dedicated 2FA (TOTP) Sidebar Tab** | ✅ Done | Dedicated `#totp` tab with local QR SVG generation, anti-replay protection, and password-verified disable flow |
 | **Dedicated Language Sidebar Tab** | ✅ Done | Dedicated `#language` tab + global top-navbar quick-switcher dropdown |
-| **6 Modern CSS Variable Themes** | ✅ Done | Unified 3-tier surface hierarchy with instant zero-reload preview and database persistence |
-| **Comprehensive Security Hardening** | ✅ Done | Timing-safe comparisons, SQL sort whitelisting, XSS protection, Rate Limiting, Session security |
-| **Custom Endings & Secret Links** | ✅ Done | Base32 / Base62 encoding, custom short endings, and secret key URLs |
+| **Dedicated Theme Sidebar Tab (6 Themes)** | ✅ Done | Dedicated `#theme` tab with unified 3-tier surface hierarchy, zero-reload preview, and database persistence |
+| **Vector QR Code Studio (`/qrcode`)** | ✅ Done | Supports URL, Text, Wi-Fi, Email, and Phone/SMS payloads with 3 custom vector styles and PNG/SVG export |
+| **Red-Team Security Hardening** | ✅ Done | Timing-safe auth, SSRF blocking, 128-bit secret keys, stateless 302 redirects, HSTS/CSP headers, Rate Limiting |
+| **Custom Endings & Secret Links** | ✅ Done | Base32 / Base62 encoding, custom short endings, and 128-bit secret key URLs |
 | **Real-Time Click Analytics** | ✅ Done | Time-series traffic charts, referer breakdowns, and interactive world map |
 | **REST API (`/api/v2`)** | ✅ Done | Upstream-compatible endpoints for single/bulk shortening, lookups, and analytics |
 
 ## Multi-Language Support (i18n)
 
-polrX ships with complete translation dictionaries in [`lang/`](lang/), covering all public pages, the Admin Dashboard, toast notifications, DataTables pagination, and Angular modals:
+polrX ships with complete translation dictionaries in [`lang/`](lang/), covering the setup wizard, all public pages, the Admin Dashboard, toast notifications, DataTables pagination, and Angular modals:
 
 | Locale Code | Language | Translation File |
 | :---: | :--- | :--- |
@@ -98,7 +105,7 @@ polrX ships with complete translation dictionaries in [`lang/`](lang/), covering
 
 ## Modern Theme System
 
-Logged-in users can switch between 6 built-in themes under **Settings (`#settings`)** (powered by [`app/Helpers/ThemeHelper.php`](app/Helpers/ThemeHelper.php) and [`public/css/themes.css`](public/css/themes.css)):
+Logged-in users can switch between 6 built-in themes under the dedicated **Theme (`#theme`)** tab in the Admin Dashboard sidebar (powered by [`app/Helpers/ThemeHelper.php`](app/Helpers/ThemeHelper.php) and [`public/css/themes.css`](public/css/themes.css)):
 
 - **Classic Light (`default`)**: Clean and crisp default light interface
 - **Midnight Slate (`midnight`)**: Low-glare dark mode with indigo accents
@@ -106,6 +113,22 @@ Logged-in users can switch between 6 built-in themes under **Settings (`#setting
 - **Warm Sand (`warm-sand`)**: Soft paper-ivory surface with amber accents
 - **Emerald Forest (`forest`)**: Natural sage-mint canvas with emerald highlights
 - **Rose Quartz (`rose`)**: Soft sakura blush surface with rose-berry accents
+
+## Vector QR Code Studio
+
+In addition to generating branded QR codes on the shortened link result page, polrX includes a standalone **QR Code Studio (`/qrcode`)** right in the top navigation bar next to "About" (implemented in [`resources/views/qrcode.blade.php`](resources/views/qrcode.blade.php) and [`public/js/qrcode_studio.js`](public/js/qrcode_studio.js)):
+
+- **5 Supported Payload Types**:
+  1. **Website URL (`url`)**: Direct web links and shortened URLs.
+  2. **Plain Text (`text`)**: Any text snippet, note, or serial code.
+  3. **Wi-Fi Network (`wifi`)**: Enter SSID, encryption (`WPA/WPA2/WPA3`, `WEP`, or `None`), password, and hidden-network flag for instant scan-to-connect.
+  4. **Email (`email`)**: Pre-fills recipient address, subject line, and message body (`mailto:`).
+  5. **Phone Call / SMS (`sms`)**: Generates scan-to-call (`tel:`) or pre-filled SMS (`SMSTO:`) QR codes.
+- **3 Custom Pure-SVG Styles** (using QR Error Correction Level `H` 30%):
+  - **Branded Dots (`branded`)**: Circular data modules, rounded concentric finder eyes, gradient accent, and the embedded **`polrX` vector icon** in the center.
+  - **Minimal Rounded (`rounded`)**: Smooth rounded data modules that adapt to your active theme palette.
+  - **Classic Crisp (`classic`)**: High-contrast black-and-white square matrix for maximum print and hardware scanner compatibility.
+- **High-Resolution Export**: 1-click download as a **`1024×1024` PNG** image or lossless vector **`.svg`** file.
 
 ## Requirements
 

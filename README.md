@@ -25,7 +25,7 @@
 
 > [!NOTE]
 > **polrX 是社群維護的現代化重構分支，與 Polr 原作者無隸屬關係。**
-> 上游專案 [cydrobolt/polr](https://github.com/cydrobolt/polr) 最後一個正式版本停留在 2021 年 1 月的 `2.3.0b`（基於已停止維護的 Lumen 5.1 與 PHP 7.x）。polrX 將整個系統升級至現代 Laravel 架構與 PHP 8.4+，並加入完整的多國語言（i18n）、現代化多階層主題系統、獨立兩步驟驗證（2FA TOTP）與全方位資安強化。
+> 上游專案 [cydrobolt/polr](https://github.com/cydrobolt/polr) 最後一個正式版本停留在 2021 年 1 月的 `2.3.0b`（基於已停止維護的 Lumen 5.1 與 PHP 7.x）。polrX 將整個系統升級至現代 Laravel 架構與 PHP 8.4+，並加入完整的多國語言（i18n）、現代化多階層主題系統、內建向量 QR Code 製作工坊、獨立兩步驟驗證（2FA TOTP）與紅隊等級的全方位資安強化。
 
 ---
 
@@ -36,6 +36,7 @@
 - [核心功能與重構狀態](#核心功能與重構狀態)
 - [多國語言支援 (i18n)](#多國語言支援-i18n)
 - [現代化外觀主題系統](#現代化外觀主題系統)
+- [向量 QR Code 製作工坊](#向量-qr-code-製作工坊)
 - [系統需求](#系統需求)
 - [快速安裝](#快速安裝)
 - [從舊版升級](#從舊版升級)
@@ -59,30 +60,35 @@ polrX 採用 **Laravel 13** 與 **PHP 8.4+** 全面改寫，使用 MySQL / Maria
 polrX 帶來了全方位的現代化升級：
 
 1. **現代 Laravel 13 + PHP 8.4 / 8.5 架構**：徹底擺脫過時的 Lumen 5.1 與廢棄套件，內建自研輕量級 `DataTablesHelper` 伺服端分頁引擎。
-2. **原生多國語言架構（i18n）**：內建 **繁體中文（台灣）**、**English**、**日本語**、**한국어** 四種語言，支援導覽列下拉選單、後台「語言」分頁與網址參數 `?lang=` 即時切換，並自動記憶於使用者帳號與 Cookie。
-3. **三階層視覺表面（3-Tier Surface）主題系統**：內建 6 款精心設計的主題（經典亮白、極夜深邃、海洋微風、暖陽沙丘、森系翠綠、櫻花粉霧），點擊即刻零延遲切換，消除傳統 Bootstrap 元件割裂感。
-4. **獨立兩步驟驗證（2FA TOTP）與全方位資安強化**：
-   - 後台獨立「兩步驟驗證」(`#totp`) 分頁，支援 1Password、Google Authenticator、Authy 等 RFC 6238 驗證器與本地端 SVG QR Code 產生。
-   - API Key 常數時間比對（`hash_equals` 防範時序攻擊）、DataTables 欄位白名單過濾（防範 SQL 注入）、統計頁面 JSON 安全序列化（防範反射型 XSS）、登入後重新產生 Session ID，以及完整的登入／TOTP／註冊速率限制（Rate Limiting）。
-5. **零痛點無縫遷移**：相容既有 Polr 2.x 資料庫，直接執行 `php artisan migrate` 即可無損升級。
+2. **原生多國語言架構（i18n）**：內建 **繁體中文（台灣）**、**English**、**日本語**、**한국어** 四種語言，支援導覽列下拉選單、後台「語言」(`#language`) 分頁與網址參數 `?lang=` 即時切換，並自動記憶於使用者帳號與 Cookie。
+3. **三階層視覺表面（3-Tier Surface）主題系統**：後台設有獨立「介面主題」(`#theme`) 分頁，內建 6 款精心設計的主題（經典亮白、極夜深邃、海洋微風、暖陽沙丘、森系翠綠、櫻花粉霧），點擊即刻零延遲切換，消除傳統 Bootstrap 元件割裂感。
+4. **自研向量 SVG QR Code 引擎與獨立「製作 QR Code」工坊 (`/qrcode`)**：
+   - 頂部導覽列內建 **「製作 QR Code」(`/qrcode`)** 獨立工具頁，支援 **網址、純文字、Wi-Fi 連線、電子郵件、電話／簡訊** 5 種內容格式。
+   - 內建 **品牌圓點（中央嵌入 polrX 專屬圖示）、流線極簡、經典高對比** 3 款純向量 SVG 樣式，支援一鍵匯出高解析 `1024×1024` PNG 與向量 `.svg` 檔案。
+5. **獨立兩步驟驗證（2FA TOTP）與紅隊等級全方位資安強化**：
+   - 後台獨立「兩步驟驗證」(`#totp`) 分頁，支援 1Password、Google Authenticator、Authy 等 RFC 6238 驗證器與 TOTP 時間窗防重放保護（Anti-Replay）。
+   - 涵蓋 API Key 常數時間比對（`hash_equals`）與登入時序平衡驗證（防範帳號枚舉）、SSRF 內部私有 IP 與雲端 Metadata 阻擋、128-bit 高熵值私密連結金鑰、無狀態 `302` 短網址跳轉（不發送 Session Cookie 並帶 `Cache-Control: no-store`）、Session 即時雜湊與角色同步校驗，以及全站 `Strict-Transport-Security` / `X-Frame-Options: DENY` / `CSP frame-ancestors 'none'` 安全標頭。
+6. **零痛點無縫遷移**：相容既有 Polr 2.x 資料庫，直接執行 `php artisan migrate` 即可無損升級。
 
 ## 核心功能與重構狀態
 
 | 功能模組 | 狀態 | 說明 |
 | :--- | :---: | :--- |
 | **Laravel 13 + PHP 8.4 / 8.5 核心重寫** | ✅ 已完成 | 移除 Lumen，全面採用標準 Laravel 路由、Middleware、Blade 與 Eloquent |
-| **全站 i18n 多國語言系統** | ✅ 已完成 | 支援 `zh_TW`（預設）、`en`、`ja`、`ko` 四語系（含後端、Blade、前端 JS、彈跳視窗） |
-| **獨立兩步驟驗證（2FA TOTP）分頁** | ✅ 已完成 | 左側導覽列獨立 `#totp` 分頁，支援設定、啟用驗證與密碼確認停用 |
+| **全站 i18n 多國語言系統** | ✅ 已完成 | 支援 `zh_TW`（預設）、`en`、`ja`、`ko` 四語系（含安裝精靈、前後台、Blade、前端 JS、彈跳視窗） |
+| **5 步驟網頁安裝精靈 & CLI 安裝腳本** | ✅ 已完成 | 初次部署無 `.env` 自動啟動語系優先導引精靈，亦提供 `./install.sh` 終端機互動安裝 |
+| **獨立兩步驟驗證（2FA TOTP）分頁** | ✅ 已完成 | 左側導覽列獨立 `#totp` 分頁，支援設定、防重放驗證與密碼確認停用 |
 | **獨立語言設定（Language）分頁** | ✅ 已完成 | 左側導覽列獨立 `#language` 分頁 + 右上角導覽列即時切換選單 |
-| **6 款現代化 CSS 變數主題系統** | ✅ 已完成 | 三階層深淺表面架構，支援即時無刷新預覽與帳號綁定儲存 |
-| **全方位資安審查與修補** | ✅ 已完成 | 時序攻擊防護、SQL 排序白名單、XSS 防護、Rate Limiting、Session 強化 |
-| **自訂短網址與秘密連結（Secret URLs）** | ✅ 已完成 | 支援 Base32 / Base62 編碼、自訂短網址結尾與隨機私密金鑰連結 |
+| **獨立介面主題（Theme）分頁（6 款主題）** | ✅ 已完成 | 左側導覽列獨立 `#theme` 分頁，三階層深淺表面架構，支援即時無刷新預覽與帳號綁定儲存 |
+| **向量 QR Code 製作工坊 (`/qrcode`)** | ✅ 已完成 | 支援網址、文字、Wi-Fi、Email、電話/簡訊 5 種格式，內建 3 款自訂向量樣式與 PNG/SVG 匯出 |
+| **紅隊資安滲透測試審查與修補** | ✅ 已完成 | 登入時序保護、SSRF 阻擋、128-bit 秘密金鑰、無狀態 302 跳轉、HSTS/CSP 標頭、Rate Limiting |
+| **自訂短網址與秘密連結（Secret URLs）** | ✅ 已完成 | 支援 Base32 / Base62 編碼、自訂短網址結尾與 128-bit 隨機私密金鑰連結 |
 | **即時點擊統計與視覺化圖表** | ✅ 已完成 | 支援時間序列流量、來源網域（Referers）與全球點擊地圖統計 |
 | **REST API (`/api/v2`)** | ✅ 已完成 | 相容上游 API 端點，支援單筆／批次縮短、數據查詢與每分鐘配額控制 |
 
 ## 多國語言支援 (i18n)
 
-polrX 內建完整的四語系字典檔（位於 [`lang/`](lang/) 目錄），涵蓋所有前後台頁面、表單提示、系統通知、DataTables 分頁與 Angular 互動視窗：
+polrX 內建完整的四語系字典檔（位於 [`lang/`](lang/) 目錄），涵蓋初次安裝精靈、所有前後台頁面、表單提示、系統通知、DataTables 分頁與 Angular 互動視窗：
 
 | 語言代碼 | 語言名稱 | 語言檔路徑 |
 | :---: | :--- | :--- |
@@ -98,7 +104,7 @@ polrX 內建完整的四語系字典檔（位於 [`lang/`](lang/) 目錄），�
 
 ## 現代化外觀主題系統
 
-登入後可於後台 **「設定」(`#settings`)** 分頁即時切換 6 款內建主題（定義於 [`app/Helpers/ThemeHelper.php`](app/Helpers/ThemeHelper.php) 與 [`public/css/themes.css`](public/css/themes.css)）：
+登入後可於後台左側選單獨立的 **「介面主題」(`#theme`)** 分頁即時切換 6 款內建主題（定義於 [`app/Helpers/ThemeHelper.php`](app/Helpers/ThemeHelper.php) 與 [`public/css/themes.css`](public/css/themes.css)）：
 
 - **經典亮白 (`default`)**：簡潔俐落的預設淺色與翠綠強調色
 - **極夜深邃 (`midnight`)**：低眩光深色模式與靛藍強調色
@@ -106,6 +112,22 @@ polrX 內建完整的四語系字典檔（位於 [`lang/`](lang/) 目錄），�
 - **暖陽沙丘 (`warm-sand`)**：溫潤紙感米白與琥珀棕點綴
 - **森系翠綠 (`forest`)**：自然松針薄荷底色與翡翠綠重點色
 - **櫻花粉霧 (`rose`)**：溫柔櫻花粉霧底色與玫瑰莓果重點色
+
+## 向量 QR Code 製作工坊
+
+除了在縮短網址完成頁面一鍵產生專屬 QR Code 外，polrX 於頂部導覽列「關於」旁內建獨立的 **「製作 QR Code」(`/qrcode`)** 向量生成工坊（位於 [`resources/views/qrcode.blade.php`](resources/views/qrcode.blade.php) 與 [`public/js/qrcode_studio.js`](public/js/qrcode_studio.js)）：
+
+- **支援 5 種資料內容類型**：
+  1. **網址 (`url`)**：網站連結與短網址。
+  2. **純文字 (`text`)**：任意文字段落、備忘錄或序號。
+  3. **Wi-Fi 網路 (`wifi`)**：輸入 SSID、加密方式（WPA/WPA2/WPA3、WEP、免密碼）與密碼，手機掃描即可自動連線。
+  4. **電子郵件 (`email`)**：預設收件人、郵件主旨與內文（`mailto:` 標準格式）。
+  5. **電話／簡訊 (`sms`)**：支援掃描直接撥號（`tel:`）或預填簡訊內容（`SMSTO:`）。
+- **內建 3 款自研純向量 SVG 視覺樣式**（自動啟用 QR Error Correction Level `H` 30% 最高容錯率）：
+  - **品牌圓點 (`branded`)**：現代圓點資料矩陣、雙層圓角定位框，並於中央嵌入 **polrX 品牌向量圖示**。
+  - **流線極簡 (`rounded`)**：溫潤圓角矩陣並自動適應當前介面主題配色。
+  - **經典高對比 (`classic`)**：標準高對比黑白銳利方格，適合印刷品與工業條碼槍掃描。
+- **高畫質匯出**：支援一鍵下載 **`1024×1024` 高解析 PNG** 或無損向量 **`.svg`** 檔案。
 
 ## 系統需求
 

@@ -150,11 +150,20 @@ class LinkHelper {
 
         $pr_str = '';
         $in_use = true;
-        $length = max(5, (int) env('_PSEUDO_RANDOM_KEY_LENGTH', 7));
+        $length = max(5, (int) env('_PSEUDO_RANDOM_KEY_LENGTH', 5));
+        $base = (int) env('POLR_BASE', 32);
+        $alphabet = ($base === 62)
+            ? '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+            : '0123456789abcdefghjkmnpqrstuvwxyz';
+        $maxIdx = strlen($alphabet) - 1;
 
         while ($in_use) {
             // Generate a new string until the ending is not in use
-            $pr_str = \Illuminate\Support\Str::random($length);
+            $buf = '';
+            for ($i = 0; $i < $length; $i++) {
+                $buf .= $alphabet[random_int(0, $maxIdx)];
+            }
+            $pr_str = $buf;
             $in_use = LinkHelper::linkExists($pr_str);
         }
 

@@ -7,9 +7,9 @@
 @section('content')
 <div class="polrx-page-card" style="max-width: 640px; margin: 0 auto; text-align: center;">
     <h3 style="margin-top: 0; margin-bottom: 20px;">{{ __('polr.shorten_result.title') }}</h3>
-    <div class="input-group" style="margin-bottom: 20px;">
+    <div class="input-group shorten-result-group">
         <input type='text' class='result-box form-control' value='{{$short_url}}' id='short_url' readonly />
-        <div class='input-group-addon' id='clipboard-copy' data-clipboard-target='#short_url' data-toggle='tooltip' data-placement='bottom' data-title='{{ __('polr.shorten_result.copied') }}' style="cursor: pointer;">
+        <div class='input-group-addon' id='clipboard-copy' data-clipboard-target='#short_url' data-toggle='tooltip' data-placement='bottom' data-title='{{ __('polr.shorten_result.copied') }}'>
             <i class='fa fa-clipboard' aria-hidden='true' title='{{ __('polr.shorten_result.copy_tooltip') }}'></i>
         </div>
     </div>
@@ -18,7 +18,7 @@
         <a href='{{route('index')}}' class='btn btn-primary'>{{ __('polr.shorten_result.shorten_another') }}</a>
     </div>
 
-    <div class="qr-code-container" style="margin-top: 20px;"></div>
+    <div class="qr-code-container"></div>
 </div>
 @endsection
 

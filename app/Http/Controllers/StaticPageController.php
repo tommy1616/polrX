@@ -12,4 +12,8 @@ class StaticPageController extends Controller {
         $user_role = session('role');
         return view('about', ['role' => $user_role, 'no_div_padding' => true]);
     }
+
+    public function displayQrGenerator(Request $request) {
+        return view('qrcode', ['no_div_padding' => true]);
+    }
 }

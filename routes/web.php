@@ -25,6 +25,7 @@ Route::post('/login', [UserController::class, 'performLogin'])->middleware('thro
 Route::get('/login/totp', [UserController::class, 'displayTotpPage'])->name('login_totp');
 Route::post('/login/totp', [UserController::class, 'performTotpLogin'])->middleware('throttle:6,1')->name('plogin_totp');
 Route::get('/about-polr', [StaticPageController::class, 'displayAbout'])->name('about');
+Route::get('/qrcode', [StaticPageController::class, 'displayQrGenerator'])->name('qrcode');
 
 Route::get('/lost_password', [UserController::class, 'displayLostPasswordPage'])->name('lost_password');
 Route::get('/activate/{username}/{recovery_key}', [UserController::class, 'performActivation'])->name('activate');

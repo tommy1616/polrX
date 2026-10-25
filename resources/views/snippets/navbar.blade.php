@@ -13,6 +13,7 @@
 
         <ul id="navbar" class="nav navbar-collapse collapse navbar-nav">
             <li><a href="{{ route('about') }}">{{ __('polr.nav.about') }}</a></li>
+            <li><a href="{{ route('qrcode') }}">{{ __('polr.nav.qrcode') }}</a></li>
 
             @if (empty(session('username')))
                 <li class="visible-xs"><a href="{{ route('login') }}">{{ __('polr.nav.login') }}</a></li>
